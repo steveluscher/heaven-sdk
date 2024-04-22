@@ -19,10 +19,15 @@
 		"lint": "eslint .",
 		"lint:prod": "npm run lint -- --config=.eslintrc.prod.json",
 		"script": "ts-node scripts",
-		"publish": "npm run script -- publish"
+		"publish": "npm run script -- publish",
+		"full-test": "ts-node test/heaven/full.test.ts"
 	},
 	"devDependencies": {
+		"@coral-xyz/anchor": "^0.30.0",
+		"@irys/sdk": "^0.1.21",
 		"@istanbuljs/nyc-config-typescript": "^1.0.2",
+		"@raydium-io/raydium-sdk": "https://github.com/n98365184/raydium-sdk-compat",
+		"@types/bn.js": "^5.1.5",
 		"@types/jasmine": "^4.3.0",
 		"@types/node": "^18.11.9",
 		"@typescript-eslint/eslint-plugin": "^5.44.0",
@@ -50,5 +55,10 @@
 		"url": "https://github.com/valhalla-sdk/valhalla-sdk/issues"
 	},
 	"homepage": "https://github.com/valhalla-sdk/valhalla-sdk#readme",
-	"keywords": []
+	"keywords": [],
+	"dependencies": {
+		"@solana/spl-token": "^0.4.3",
+		"@solana/web3.js": "^1.91.2",
+		"bn.js": "^5.2.1"
+	}
 }
