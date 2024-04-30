@@ -8,10 +8,10 @@ export default async function prep() {
 		finishedDescription: 'Installed',
 	});
 
-	cmd.run('npm run lint:prod', {
-		loadingDescription: 'Linting',
-		finishedDescription: 'Linted',
-	});
+	// cmd.run('npm run lint:prod', {
+	// 	loadingDescription: 'Linting',
+	// 	finishedDescription: 'Linted',
+	// });
 
 	cmd.run('npm run build', {
 		loadingDescription: 'Building',

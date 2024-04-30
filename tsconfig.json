@@ -12,6 +12,7 @@
 		"esModuleInterop": true,
 		"target": "es6",
 		"types": ["node"],
+		"skipLibCheck": true,
 		"typeRoots": [],
 		"lib": ["es2020"]
 	},

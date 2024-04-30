@@ -1,7 +1,7 @@
 {
-	"name": "valhalla-sdk",
-	"version": "1.0.0",
-	"description": "valhalla-sdk",
+	"name": "heaven-sdk",
+	"version": "0.0.8",
+	"description": "heaven-sdk",
 	"private": "true",
 	"typescript-template": {
 		"base": "1.0.0",
@@ -20,13 +20,11 @@
 		"lint:prod": "npm run lint -- --config=.eslintrc.prod.json",
 		"script": "ts-node scripts",
 		"publish": "npm run script -- publish",
-		"full-test": "ts-node test/heaven/full.test.ts"
+		"full-test": "ts-node test/heaven/full.test.ts",
+		"example": "ts-node examples/index.ts"
 	},
 	"devDependencies": {
-		"@coral-xyz/anchor": "^0.30.0",
-		"@irys/sdk": "^0.1.21",
 		"@istanbuljs/nyc-config-typescript": "^1.0.2",
-		"@raydium-io/raydium-sdk": "https://github.com/n98365184/raydium-sdk-compat",
 		"@types/bn.js": "^5.1.5",
 		"@types/jasmine": "^4.3.0",
 		"@types/node": "^18.11.9",
@@ -38,7 +36,7 @@
 		"prettier": "^2.8.0",
 		"prettier-eslint": "^15.0.1",
 		"prettier-eslint-cli": "^7.1.0",
-		"ts-node": "^10.9.1",
+		"ts-node": "^10.9.2",
 		"ts-packager": "^1.1.0",
 		"ts-script": "^1.0.0",
 		"ts-tiny-log": "^1.1.1",
@@ -47,18 +45,26 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/valhalla-sdk/valhalla-sdk.git"
+		"url": "git+https://github.com/n98365184/heaven-sdk.git"
 	},
 	"author": "valhalla-sdk",
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/valhalla-sdk/valhalla-sdk/issues"
+		"url": "https://github.com/n98365184/heaven-sdk/issues"
 	},
-	"homepage": "https://github.com/valhalla-sdk/valhalla-sdk#readme",
+	"homepage": "https://github.com/n98365184/heaven-sdk#readme",
 	"keywords": [],
 	"dependencies": {
+		"@metaplex-foundation/mpl-candy-machine": "^6.0.1",
+		"@metaplex-foundation/mpl-token-metadata": "^3.2.1",
+		"@metaplex-foundation/umi": "^0.9.1",
+		"@metaplex-foundation/umi-bundle-defaults": "^0.9.1",
 		"@solana/spl-token": "^0.4.3",
-		"@solana/web3.js": "^1.91.2",
-		"bn.js": "^5.2.1"
+		"@solana/web3.js": "^1.91.7",
+		"bn.js": "^5.2.1",
+		"bs58": "^5.0.0",
+		"ipfs-only-hash": "^4.0.0",
+		"@coral-xyz/anchor": "^0.29.0",
+		"@irys/sdk": "^0.1.22"
 	}
 }

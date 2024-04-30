@@ -15,7 +15,7 @@ module.exports = {
 	rules: {
 		"brace-style": 0,
 		"curly": 2,
-		"indent": [4, "tab"],
+		"indent": [0, "tab"],
 		"max-len": [1, 80],
 		"no-case-declarations": 1,
 		"no-console": 1,

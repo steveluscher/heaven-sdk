@@ -1,0 +1,31 @@
+<html>
+	<body>
+		<form>
+			<input
+				type="file"
+				accept="image/*"
+				name="image"
+				id="file"
+			/>
+		</form>
+
+		<script>
+			document.querySelector('#file').addEventListener('change', upload);
+
+			async function upload() {
+				const fileReader = new FileReader();
+				// Read file as ArrayBuffer
+				await fileReader.readAsArrayBuffer(event.target.files[0]);
+				//  Listen for the onload event
+				fileReader.onload = async (event) => {
+					const node = await Ipfs.create();
+					// upload the file content
+					let { path } = await node.add(fileReader.result);
+
+					console.log('path', path);
+				};
+			}
+		</script>
+		<script src="https://cdn.jsdelivr.net/npm/ipfs/dist/index.min.js"></script>
+	</body>
+</html>
