@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/brace-style */
+/* eslint-disable max-len */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { HeavenAnchorAmm, IDL } from './idl';
@@ -13,26 +16,31 @@ import {
 import {
 	ASSOCIATED_TOKEN_PROGRAM_ID,
 	ExtensionType,
+	MINT_SIZE,
 	TOKEN_2022_PROGRAM_ID,
 	TOKEN_PROGRAM_ID,
 	createInitializeMintInstruction,
 	createInitializeTransferFeeConfigInstruction,
 	getAssociatedTokenAddressSync,
+	getMinimumBalanceForRentExemptMint,
 	getMintLen,
 } from '@solana/spl-token';
 import Arweave from 'arweave';
-import { WebIrys, NodeIrys } from '@irys/sdk';
+import { WebIrys } from '@irys/sdk';
 import IPFS from 'ipfs-only-hash';
 import {
 	percentAmount,
 	signerIdentity,
 	Signer as UmiSigner,
 	some,
+	UmiPlugin,
 } from '@metaplex-foundation/umi';
 import { createFungible } from '@metaplex-foundation/mpl-token-metadata';
 import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 import { mplCandyMachine } from '@metaplex-foundation/mpl-candy-machine';
 import '@solana/web3.js';
+import { walletAdapterIdentity } from '@metaplex-foundation/umi-signer-wallet-adapters';
+import { WalletAdapter } from '@solana/wallet-adapter-base';
 
 export enum HeavenSupportedNetwork {
 	localnet = 0,
@@ -117,6 +125,18 @@ export const HeavenSupportedStableCoinMint = {
 		HeavenSupportedStableCoin.USDT,
 };
 
+export const HeavenSupportedStableCoinMintAddress = {
+	[HeavenSupportedStableCoin.WSOL]: new PublicKey(
+		'So11111111111111111111111111111111111111112'
+	),
+	[HeavenSupportedStableCoin.USDC]: new PublicKey(
+		'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+	),
+	[HeavenSupportedStableCoin.USDT]: new PublicKey(
+		'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'
+	),
+};
+
 export enum HeavenSupportedTokenProgram {
 	TOKEN,
 	TOKEN_2022,
@@ -125,6 +145,28 @@ export enum HeavenSupportedTokenProgram {
 export const HeavenSupportedTokenProgramId = {
 	[HeavenSupportedTokenProgram.TOKEN]: TOKEN_PROGRAM_ID,
 	[HeavenSupportedTokenProgram.TOKEN_2022]: TOKEN_2022_PROGRAM_ID,
+};
+
+export type LiquidityPoolState =
+	anchor.IdlAccounts<HeavenAnchorAmm>['liquidityPoolState'];
+
+const getHeavenSupportedTokenProgramFromKey = (key: PublicKey) => {
+	if (
+		key.equals(
+			HeavenSupportedTokenProgramId[HeavenSupportedTokenProgram.TOKEN]
+		)
+	) {
+		return HeavenSupportedTokenProgram.TOKEN;
+	} else if (
+		key.equals(
+			HeavenSupportedTokenProgramId[
+				HeavenSupportedTokenProgram.TOKEN_2022
+			]
+		)
+	) {
+		return HeavenSupportedTokenProgram.TOKEN_2022;
+	}
+	throw new Error('Unsupported token program');
 };
 
 export class Heaven {
@@ -169,6 +211,14 @@ export class Heaven {
 	) {
 		return this.program.methods
 			.swapIn(params)
+			.accountsStrict(this.accounts);
+	}
+
+	makeUpdateLiquidityPoolInstruction(
+		params: anchor.IdlTypes<HeavenAnchorAmm>['UpdateLiquidityPoolParams']
+	) {
+		return this.program.methods
+			.updateLiquidityPool(params)
 			.accountsStrict(this.accounts);
 	}
 
@@ -290,10 +340,11 @@ export class Heaven {
 		protocolQuoteTokenSwapFeeVault: PublicKey;
 		userLpTokenVault: PublicKey;
 		userGlobalStats: PublicKey;
+		protocolOwnerState: PublicKey;
 	};
 
 	static initializeWithTokenPair(params: {
-		user: PublicKey;
+		owner: PublicKey;
 		baseTokenMint: PublicKey;
 		baseTokenProgram: HeavenSupportedTokenProgram;
 		quoteTokenMint: PublicKey;
@@ -305,9 +356,72 @@ export class Heaven {
 		return new Heaven(params);
 	}
 
+	static createProgram(network: HeavenSupportedNetwork) {
+		const programId = HeavenSupportedNetworkProgramId[network];
+
+		const connection = new Connection(
+			HeavenSupportedNetworkClusterApiUrl[network],
+			'confirmed'
+		);
+
+		const program = new Program<HeavenAnchorAmm>(IDL, programId, {
+			connection,
+		});
+		return program;
+	}
+
+	static async initializeWithExistingPoolId(params: {
+		user: PublicKey;
+		network: HeavenSupportedNetwork;
+		clusterApiUrlOverride?: string;
+		liquidityPoolId: PublicKey;
+	}) {
+		const programId = HeavenSupportedNetworkProgramId[params.network];
+
+		const connection = new Connection(
+			params.clusterApiUrlOverride ??
+				HeavenSupportedNetworkClusterApiUrl[params.network],
+			'confirmed'
+		);
+
+		const program = new Program<HeavenAnchorAmm>(IDL, programId, {
+			connection,
+		});
+
+		const poolInfo = await program.account.liquidityPoolState.fetch(
+			params.liquidityPoolId
+		);
+
+		const baseTokenMintInfo = await connection.getAccountInfo(
+			poolInfo.baseTokenMint
+		);
+		const quoteTokenMintInfo = await connection.getAccountInfo(
+			poolInfo.quoteTokenMint
+		);
+
+		const baseTokenProgram = getHeavenSupportedTokenProgramFromKey(
+			baseTokenMintInfo.owner
+		);
+		const quoteTokenProgram = getHeavenSupportedTokenProgramFromKey(
+			quoteTokenMintInfo.owner
+		);
+
+		return new Heaven({
+			owner: poolInfo.creator,
+			baseTokenMint: poolInfo.baseTokenMint,
+			baseTokenProgram: baseTokenProgram,
+			quoteTokenMint: poolInfo.quoteTokenMint,
+			quoteTokenProgram: quoteTokenProgram,
+			protocolConfigVersion: poolInfo.protocolConfigVersion,
+			network: params.network,
+			clusterApiUrlOverride: params.clusterApiUrlOverride,
+			user: params.user,
+		});
+	}
+
 	private constructor(
 		public params: {
-			user: PublicKey;
+			owner: PublicKey;
 			baseTokenMint: PublicKey;
 			baseTokenProgram: HeavenSupportedTokenProgram;
 			quoteTokenMint: PublicKey;
@@ -315,6 +429,7 @@ export class Heaven {
 			protocolConfigVersion: number;
 			network: HeavenSupportedNetwork;
 			clusterApiUrlOverride?: string;
+			user?: PublicKey;
 		}
 	) {
 		this.protocolConfigVersion = params.protocolConfigVersion;
@@ -333,17 +448,18 @@ export class Heaven {
 			HeavenSupportedTokenProgramId[this.params.baseTokenProgram];
 		this._quoteTokenProgram =
 			HeavenSupportedTokenProgramId[this.params.quoteTokenProgram];
-		this._user = this.params.user;
+		this._owner = this.params.owner;
+		this._user = this.params.user ?? this.params.owner;
 		this._baseTokenMint = this.params.baseTokenMint;
 		this._quoteTokenMint = this.params.quoteTokenMint;
 		this._liquidityPoolState = Heaven.deriveLiquidityPoolStatePda(
-			this.user,
+			this.owner,
 			this.baseTokenMint,
 			this.quoteTokenMint,
 			this.programId
 		);
 		this._userAmmStats = Heaven.deriveUserAmmStatsPda(
-			this.user,
+			params.user ?? params.owner,
 			this.liquidityPoolState,
 			this.programId
 		);
@@ -363,7 +479,7 @@ export class Heaven {
 			this.programId
 		);
 		this._lpTokenLockVault = Heaven.deriveLpTokenLockVaultPda(
-			this.user,
+			this.owner,
 			this.liquidityProviderTokenMint,
 			this.programId
 		);
@@ -447,6 +563,9 @@ export class Heaven {
 			protocolBaseTokenSwapFeeVault: this.protocolBaseTokenSwapFeeVault,
 			userLpTokenVault: this.userLpTokenVault,
 			userGlobalStats: this.userGlobalStats,
+			protocolOwnerState: Heaven.deriveProtocolOwnerPda(
+				this.programId
+			)[0],
 		};
 	}
 
@@ -525,6 +644,11 @@ export class Heaven {
 		return this._quoteTokenVault[1];
 	}
 
+	_owner: PublicKey;
+	get owner(): PublicKey {
+		return this._owner;
+	}
+
 	_user: PublicKey;
 	get user(): PublicKey {
 		return this._user;
@@ -592,6 +716,13 @@ export class Heaven {
 	static deriveAuthorityPda(programId: PublicKey) {
 		const seeds = [
 			Buffer.from(anchor.utils.bytes.utf8.encode('authority')),
+		];
+		return PublicKey.findProgramAddressSync(seeds, programId);
+	}
+
+	static deriveProtocolOwnerPda(programId: PublicKey) {
+		const seeds = [
+			Buffer.from(anchor.utils.bytes.utf8.encode('protocol_owner_state')),
 		];
 		return PublicKey.findProgramAddressSync(seeds, programId);
 	}
@@ -745,27 +876,6 @@ export class Heaven {
 		logging: false,
 	});
 
-	static async uploadImageToArweave(
-		data?: string | ArrayBuffer | Uint8Array,
-		contentType?: string
-	) {
-		const rpcUrl = '';
-
-		const webIrys = new NodeIrys({
-			network: 'mainnet',
-			token: 'solana',
-		});
-		await webIrys.ready();
-		return webIrys;
-	}
-
-	static _nodeIrys?: NodeIrys;
-	static get nodeIrys() {
-		if (!this._nodeIrys) {
-			throw new Error('NodeIrys not initialized');
-		}
-		return this._nodeIrys;
-	}
 	static _webIrys?: WebIrys;
 	static get webIrys() {
 		if (!this._webIrys) {
@@ -773,28 +883,6 @@ export class Heaven {
 		}
 		return this._webIrys;
 	}
-
-	static initializeNodeIrys = async (
-		network: HeavenSupportedNetwork,
-		key: Keypair
-	) => {
-		if (this._nodeIrys) {
-			return this._nodeIrys;
-		}
-		const networkName = HeavenSupportedNetworkName[network];
-		// Devnet RPC URLs change often, use a recent one from https://chainlist.org/
-		const providerUrl = HeavenSupportedNetworkClusterApiUrl[network];
-		const token = 'solana';
-
-		const irys = new NodeIrys({
-			network: networkName, // "mainnet" || "devnet"
-			token, // Token used for payment
-			key: key.secretKey, // ETH or SOL private key
-			config: { providerUrl }, // Optional provider URL, only required when using Devnet
-		});
-		this._nodeIrys = await irys.ready();
-		return this._nodeIrys;
-	};
 
 	static initializeWebIrys = async (
 		network: HeavenSupportedNetwork,
@@ -824,6 +912,35 @@ export class Heaven {
 
 	static generateCID = async (content) => {
 		return await IPFS.of(content);
+	};
+
+	static makeCreateTokenInstruction = async (params: {
+		decimals: number;
+		payer: PublicKey;
+		connection: Connection;
+		userDefinedMint: PublicKey;
+	}) => {
+		const mint = params.userDefinedMint;
+		const tx = new Transaction().add(
+			// create mint account
+			SystemProgram.createAccount({
+				fromPubkey: params.payer,
+				newAccountPubkey: mint,
+				space: MINT_SIZE,
+				lamports: await getMinimumBalanceForRentExemptMint(
+					params.connection
+				),
+				programId: TOKEN_PROGRAM_ID,
+			}),
+			// init mint account
+			createInitializeMintInstruction(
+				mint, // mint pubkey
+				params.decimals, // decimals
+				params.payer, // mint authority
+				params.payer // freeze authority (you can use `null` to disable it. when you disable it, you can't turn it on again)
+			)
+		);
+		return tx;
 	};
 
 	static makeCreateToken2022WithTransferFeeInstruction = async (params: {
@@ -891,12 +1008,13 @@ export class Heaven {
 	};
 
 	static uploadMintImage = async (params: {
-		key: Keypair;
+		key: Keypair | object;
 		coinImageData: string | Buffer;
 		coinImageType: string;
+		network: HeavenSupportedNetwork.devnet | HeavenSupportedNetwork.mainnet;
 	}) => {
-		const coinUploadResult = await Heaven.nodeUploadToIrysWithCID(
-			HeavenSupportedNetwork.devnet,
+		const coinUploadResult = await Heaven.webUploadToIrysWithCID(
+			params.network,
 			params.key,
 			params.coinImageData,
 			params.coinImageType
@@ -910,6 +1028,7 @@ export class Heaven {
 		name: string;
 		symbol: string;
 		description: string;
+		network: HeavenSupportedNetwork.devnet | HeavenSupportedNetwork.mainnet;
 	}) => {
 		const tokenMetadata = {
 			name: params.name,
@@ -917,26 +1036,16 @@ export class Heaven {
 			description: params.description,
 			image: params.image,
 		};
-		let tokenMetadataUploadResult: {
+		const tokenMetadataUploadResult: {
 			contentID: any;
 			directUrl: string;
 			contentIdUrl: string;
-		};
-		if (params.key instanceof Keypair) {
-			tokenMetadataUploadResult = await Heaven.nodeUploadToIrysWithCID(
-				HeavenSupportedNetwork.devnet,
-				params.key,
-				JSON.stringify(tokenMetadata),
-				'application/json'
-			);
-		} else {
-			tokenMetadataUploadResult = await Heaven.webUploadToIrysWithCID(
-				HeavenSupportedNetwork.devnet,
-				params.key,
-				JSON.stringify(tokenMetadata),
-				'application/json'
-			);
-		}
+		} = await Heaven.webUploadToIrysWithCID(
+			params.network,
+			params.key,
+			JSON.stringify(tokenMetadata),
+			'application/json'
+		);
 
 		return { ...tokenMetadataUploadResult, metadata: tokenMetadata };
 	};
@@ -949,14 +1058,13 @@ export class Heaven {
 		decimals: number;
 		uri: string;
 		mint: PublicKey;
-		signer: UmiSigner;
+		signer: WalletAdapter;
 		tokenProgram: PublicKey;
 	}) {
 		const umi = createUmi(
 			HeavenSupportedNetworkClusterApiUrl[params.network]
 		);
-
-		umi.use(signerIdentity(params.signer, true));
+		umi.use(walletAdapterIdentity(params.signer));
 		umi.use(mplCandyMachine());
 
 		const ixs = createFungible(umi, {
@@ -985,32 +1093,6 @@ export class Heaven {
 
 		return new Transaction().add(...txIxs);
 	}
-
-	static nodeUploadToIrysWithCID = async (
-		network: HeavenSupportedNetwork,
-		key: Keypair,
-		data: string | Buffer,
-		contentType: string
-	) => {
-		const irys = await this.initializeNodeIrys(network, key);
-
-		const contentID = await this.generateCID(data);
-
-		const price = await irys.getPrice(data.length);
-		await irys.fund(price);
-
-		const tags = [
-			{ name: 'Content-Type', value: contentType },
-			{ name: 'IPFS-CID', value: contentID },
-		];
-		const receipt = await irys.upload(data, { tags: tags });
-
-		return {
-			contentID,
-			directUrl: `https://gateway.irys.xyz/${receipt.id}`,
-			contentIdUrl: `https://gateway.irys.xyz/ipfs/${contentID}`,
-		};
-	};
 
 	static webUploadToIrysWithCID = async (
 		network: HeavenSupportedNetwork,
