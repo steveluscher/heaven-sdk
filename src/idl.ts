@@ -3,6 +3,32 @@ export type HeavenAnchorAmm = {
 	name: 'heaven_anchor_amm';
 	instructions: [
 		{
+			name: 'createOrUpdateProtocolOwner';
+			accounts: [
+				{
+					name: 'systemProgram';
+					isMut: false;
+					isSigner: false;
+				},
+				{
+					name: 'currentOwner';
+					isMut: true;
+					isSigner: true;
+				},
+				{
+					name: 'newOwner';
+					isMut: true;
+					isSigner: true;
+				},
+				{
+					name: 'protocolOwnerState';
+					isMut: true;
+					isSigner: false;
+				}
+			];
+			args: [];
+		},
+		{
 			name: 'claimLpTokens';
 			accounts: [
 				{
@@ -122,6 +148,11 @@ export type HeavenAnchorAmm = {
 					name: 'quoteTokenMint';
 					isMut: false;
 					isSigner: false;
+				},
+				{
+					name: 'protocolOwnerState';
+					isMut: false;
+					isSigner: false;
 				}
 			];
 			args: [
@@ -148,6 +179,11 @@ export type HeavenAnchorAmm = {
 				},
 				{
 					name: 'systemProgram';
+					isMut: false;
+					isSigner: false;
+				},
+				{
+					name: 'protocolOwnerState';
 					isMut: false;
 					isSigner: false;
 				}
@@ -372,17 +408,17 @@ export type HeavenAnchorAmm = {
 					docs: ['CHECK'];
 				},
 				{
-					name: 'userAmmStats';
-					isMut: true;
-					isSigner: false;
-				},
-				{
 					name: 'protocolBaseTokenSwapFeeVault';
 					isMut: true;
 					isSigner: false;
 				},
 				{
 					name: 'protocolQuoteTokenSwapFeeVault';
+					isMut: true;
+					isSigner: false;
+				},
+				{
+					name: 'userAmmStats';
 					isMut: true;
 					isSigner: false;
 				},
@@ -455,13 +491,11 @@ export type HeavenAnchorAmm = {
 					name: 'userQuoteTokenVault';
 					isMut: true;
 					isSigner: false;
-					docs: ['CHECK'];
 				},
 				{
 					name: 'userBaseTokenVault';
 					isMut: true;
 					isSigner: false;
-					docs: ['CHECK'];
 				}
 			];
 			args: [
@@ -506,6 +540,11 @@ export type HeavenAnchorAmm = {
 				},
 				{
 					name: 'protocolConfigState';
+					isMut: false;
+					isSigner: false;
+				},
+				{
+					name: 'protocolOwnerState';
 					isMut: false;
 					isSigner: false;
 				}
@@ -718,6 +757,7 @@ export type HeavenAnchorAmm = {
 					name: 'userLpTokenVault';
 					isMut: true;
 					isSigner: false;
+					docs: ['CHECK'];
 				},
 				{
 					name: 'baseTokenVault';
@@ -913,19 +953,19 @@ export type HeavenAnchorAmm = {
 					},
 					{
 						name: 'baseTokenAdded';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'baseTokenRemoved';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'quoteTokenAdded';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'quoteTokenRemoved';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'addLiquidityCount';
@@ -1061,27 +1101,27 @@ export type HeavenAnchorAmm = {
 					},
 					{
 						name: 'liquidityAddedWsol';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'liquidityAddedUsdc';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'liquidityAddedUsdt';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'liquidityRemovedWsol';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'liquidityRemovedUsdc';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'liquidityRemovedUsdt';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'addLiquidityCount';
@@ -1216,11 +1256,11 @@ export type HeavenAnchorAmm = {
 						type: 'u64';
 					},
 					{
-						name: 'swapTaxNumerator';
+						name: 'buyTax';
 						type: 'u64';
 					},
 					{
-						name: 'swapTaxDenominator';
+						name: 'sellTax';
 						type: 'u64';
 					},
 					{
@@ -1363,27 +1403,27 @@ export type HeavenAnchorAmm = {
 					},
 					{
 						name: 'liquidityAdded';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'liquidityRemoved';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'baseTokenAdded';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'baseTokenRemoved';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'quoteTokenAdded';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'quoteTokenRemoved';
-						type: 'u64';
+						type: 'u128';
 					},
 					{
 						name: 'baseProtocolTax';
@@ -1400,6 +1440,27 @@ export type HeavenAnchorAmm = {
 					{
 						name: 'quoteProtocolFee';
 						type: 'u128';
+					},
+					{
+						name: 'baseTokenVaultBalance';
+						type: 'u64';
+					},
+					{
+						name: 'quoteTokenVaultBalance';
+						type: 'u64';
+					}
+				];
+			};
+		},
+		{
+			name: 'protocolOwnerState';
+			docs: ['Holds the current owner of the factory'];
+			type: {
+				kind: 'struct';
+				fields: [
+					{
+						name: 'currentProtocolOwner';
+						type: 'publicKey';
 					}
 				];
 			};
@@ -1563,22 +1624,20 @@ export type HeavenAnchorAmm = {
 						type: 'u64';
 					},
 					{
-						name: 'taxationMode';
-						type: {
-							defined: 'TaxationMode';
-						};
-					},
-					{
-						name: 'swapTaxNumerator';
+						name: 'buyTax';
 						type: 'u64';
 					},
 					{
-						name: 'swapTaxDenominator';
+						name: 'sellTax';
 						type: 'u64';
 					},
 					{
 						name: 'encodedUserDefinedEventData';
 						type: 'string';
+					},
+					{
+						name: 'burnLpTokens';
+						type: 'bool';
 					}
 				];
 			};
@@ -1717,11 +1776,11 @@ export type HeavenAnchorAmm = {
 						type: 'bool';
 					},
 					{
-						name: 'swapTaxNumerator';
+						name: 'buyTax';
 						type: 'u64';
 					},
 					{
-						name: 'swapTaxDenominator';
+						name: 'sellTax';
 						type: 'u64';
 					},
 					{
@@ -1729,14 +1788,12 @@ export type HeavenAnchorAmm = {
 						type: 'u64';
 					},
 					{
-						name: 'taxationMode';
-						type: {
-							defined: 'TaxationMode';
-						};
-					},
-					{
 						name: 'encodedUserDefinedEventData';
 						type: 'string';
+					},
+					{
+						name: 'openAt';
+						type: 'u64';
 					}
 				];
 			};
@@ -1768,9 +1825,6 @@ export type HeavenAnchorAmm = {
 					},
 					{
 						name: 'Quote';
-					},
-					{
-						name: 'Input';
 					}
 				];
 			};
@@ -1997,6 +2051,16 @@ export type HeavenAnchorAmm = {
 					name: 'swapAmountOut';
 					type: 'u64';
 					index: false;
+				},
+				{
+					name: 'baseTokenVaultBalance';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'quoteTokenVaultBalance';
+					type: 'u64';
+					index: false;
 				}
 			];
 		},
@@ -2027,6 +2091,16 @@ export type HeavenAnchorAmm = {
 				},
 				{
 					name: 'swapAmountOut';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'baseTokenVaultBalance';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'quoteTokenVaultBalance';
 					type: 'u64';
 					index: false;
 				}
@@ -2061,12 +2135,12 @@ export type HeavenAnchorAmm = {
 					index: false;
 				},
 				{
-					name: 'swapTaxNumerator';
+					name: 'buyTax';
 					type: 'u64';
 					index: false;
 				},
 				{
-					name: 'swapTaxDenominator';
+					name: 'sellTax';
 					type: 'u64';
 					index: false;
 				},
@@ -2080,6 +2154,11 @@ export type HeavenAnchorAmm = {
 					type: {
 						defined: 'TaxationMode';
 					};
+					index: false;
+				},
+				{
+					name: 'openAt';
+					type: 'u64';
 					index: false;
 				}
 			];
@@ -2260,6 +2339,31 @@ export type HeavenAnchorAmm = {
 			code: 6030;
 			name: 'InvalidUserGlobalStatsAccount';
 			msg: 'Invalid user global stats account';
+		},
+		{
+			code: 6031;
+			name: 'CannotUpdateLpLock';
+			msg: 'Cannot update lp lock';
+		},
+		{
+			code: 6032;
+			name: 'ZeroAmount';
+			msg: 'Zero amount';
+		},
+		{
+			code: 6033;
+			name: 'CannotUpdateLpOpenTime';
+			msg: 'Cannot update lp open time';
+		},
+		{
+			code: 6034;
+			name: 'CannotSetLockBurnLpTokens';
+			msg: 'Cannot set lock burn lp tokens';
+		},
+		{
+			code: 6035;
+			name: 'InvalidTax';
+			msg: 'Invalid tax';
 		}
 	];
 };
@@ -2268,6 +2372,32 @@ export const IDL: HeavenAnchorAmm = {
 	version: '0.1.0',
 	name: 'heaven_anchor_amm',
 	instructions: [
+		{
+			name: 'createOrUpdateProtocolOwner',
+			accounts: [
+				{
+					name: 'systemProgram',
+					isMut: false,
+					isSigner: false,
+				},
+				{
+					name: 'currentOwner',
+					isMut: true,
+					isSigner: true,
+				},
+				{
+					name: 'newOwner',
+					isMut: true,
+					isSigner: true,
+				},
+				{
+					name: 'protocolOwnerState',
+					isMut: true,
+					isSigner: false,
+				},
+			],
+			args: [],
+		},
 		{
 			name: 'claimLpTokens',
 			accounts: [
@@ -2389,6 +2519,11 @@ export const IDL: HeavenAnchorAmm = {
 					isMut: false,
 					isSigner: false,
 				},
+				{
+					name: 'protocolOwnerState',
+					isMut: false,
+					isSigner: false,
+				},
 			],
 			args: [
 				{
@@ -2414,6 +2549,11 @@ export const IDL: HeavenAnchorAmm = {
 				},
 				{
 					name: 'systemProgram',
+					isMut: false,
+					isSigner: false,
+				},
+				{
+					name: 'protocolOwnerState',
 					isMut: false,
 					isSigner: false,
 				},
@@ -2638,17 +2778,17 @@ export const IDL: HeavenAnchorAmm = {
 					docs: ['CHECK'],
 				},
 				{
-					name: 'userAmmStats',
-					isMut: true,
-					isSigner: false,
-				},
-				{
 					name: 'protocolBaseTokenSwapFeeVault',
 					isMut: true,
 					isSigner: false,
 				},
 				{
 					name: 'protocolQuoteTokenSwapFeeVault',
+					isMut: true,
+					isSigner: false,
+				},
+				{
+					name: 'userAmmStats',
 					isMut: true,
 					isSigner: false,
 				},
@@ -2721,13 +2861,11 @@ export const IDL: HeavenAnchorAmm = {
 					name: 'userQuoteTokenVault',
 					isMut: true,
 					isSigner: false,
-					docs: ['CHECK'],
 				},
 				{
 					name: 'userBaseTokenVault',
 					isMut: true,
 					isSigner: false,
-					docs: ['CHECK'],
 				},
 			],
 			args: [
@@ -2772,6 +2910,11 @@ export const IDL: HeavenAnchorAmm = {
 				},
 				{
 					name: 'protocolConfigState',
+					isMut: false,
+					isSigner: false,
+				},
+				{
+					name: 'protocolOwnerState',
 					isMut: false,
 					isSigner: false,
 				},
@@ -2984,6 +3127,7 @@ export const IDL: HeavenAnchorAmm = {
 					name: 'userLpTokenVault',
 					isMut: true,
 					isSigner: false,
+					docs: ['CHECK'],
 				},
 				{
 					name: 'baseTokenVault',
@@ -3179,19 +3323,19 @@ export const IDL: HeavenAnchorAmm = {
 					},
 					{
 						name: 'baseTokenAdded',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'baseTokenRemoved',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'quoteTokenAdded',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'quoteTokenRemoved',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'addLiquidityCount',
@@ -3327,27 +3471,27 @@ export const IDL: HeavenAnchorAmm = {
 					},
 					{
 						name: 'liquidityAddedWsol',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'liquidityAddedUsdc',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'liquidityAddedUsdt',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'liquidityRemovedWsol',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'liquidityRemovedUsdc',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'liquidityRemovedUsdt',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'addLiquidityCount',
@@ -3482,11 +3626,11 @@ export const IDL: HeavenAnchorAmm = {
 						type: 'u64',
 					},
 					{
-						name: 'swapTaxNumerator',
+						name: 'buyTax',
 						type: 'u64',
 					},
 					{
-						name: 'swapTaxDenominator',
+						name: 'sellTax',
 						type: 'u64',
 					},
 					{
@@ -3629,27 +3773,27 @@ export const IDL: HeavenAnchorAmm = {
 					},
 					{
 						name: 'liquidityAdded',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'liquidityRemoved',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'baseTokenAdded',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'baseTokenRemoved',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'quoteTokenAdded',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'quoteTokenRemoved',
-						type: 'u64',
+						type: 'u128',
 					},
 					{
 						name: 'baseProtocolTax',
@@ -3666,6 +3810,27 @@ export const IDL: HeavenAnchorAmm = {
 					{
 						name: 'quoteProtocolFee',
 						type: 'u128',
+					},
+					{
+						name: 'baseTokenVaultBalance',
+						type: 'u64',
+					},
+					{
+						name: 'quoteTokenVaultBalance',
+						type: 'u64',
+					},
+				],
+			},
+		},
+		{
+			name: 'protocolOwnerState',
+			docs: ['Holds the current owner of the factory'],
+			type: {
+				kind: 'struct',
+				fields: [
+					{
+						name: 'currentProtocolOwner',
+						type: 'publicKey',
 					},
 				],
 			},
@@ -3829,22 +3994,20 @@ export const IDL: HeavenAnchorAmm = {
 						type: 'u64',
 					},
 					{
-						name: 'taxationMode',
-						type: {
-							defined: 'TaxationMode',
-						},
-					},
-					{
-						name: 'swapTaxNumerator',
+						name: 'buyTax',
 						type: 'u64',
 					},
 					{
-						name: 'swapTaxDenominator',
+						name: 'sellTax',
 						type: 'u64',
 					},
 					{
 						name: 'encodedUserDefinedEventData',
 						type: 'string',
+					},
+					{
+						name: 'burnLpTokens',
+						type: 'bool',
 					},
 				],
 			},
@@ -3983,11 +4146,11 @@ export const IDL: HeavenAnchorAmm = {
 						type: 'bool',
 					},
 					{
-						name: 'swapTaxNumerator',
+						name: 'buyTax',
 						type: 'u64',
 					},
 					{
-						name: 'swapTaxDenominator',
+						name: 'sellTax',
 						type: 'u64',
 					},
 					{
@@ -3995,14 +4158,12 @@ export const IDL: HeavenAnchorAmm = {
 						type: 'u64',
 					},
 					{
-						name: 'taxationMode',
-						type: {
-							defined: 'TaxationMode',
-						},
-					},
-					{
 						name: 'encodedUserDefinedEventData',
 						type: 'string',
+					},
+					{
+						name: 'openAt',
+						type: 'u64',
 					},
 				],
 			},
@@ -4034,9 +4195,6 @@ export const IDL: HeavenAnchorAmm = {
 					},
 					{
 						name: 'Quote',
-					},
-					{
-						name: 'Input',
 					},
 				],
 			},
@@ -4264,6 +4422,16 @@ export const IDL: HeavenAnchorAmm = {
 					type: 'u64',
 					index: false,
 				},
+				{
+					name: 'baseTokenVaultBalance',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'quoteTokenVaultBalance',
+					type: 'u64',
+					index: false,
+				},
 			],
 		},
 		{
@@ -4293,6 +4461,16 @@ export const IDL: HeavenAnchorAmm = {
 				},
 				{
 					name: 'swapAmountOut',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'baseTokenVaultBalance',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'quoteTokenVaultBalance',
 					type: 'u64',
 					index: false,
 				},
@@ -4327,12 +4505,12 @@ export const IDL: HeavenAnchorAmm = {
 					index: false,
 				},
 				{
-					name: 'swapTaxNumerator',
+					name: 'buyTax',
 					type: 'u64',
 					index: false,
 				},
 				{
-					name: 'swapTaxDenominator',
+					name: 'sellTax',
 					type: 'u64',
 					index: false,
 				},
@@ -4346,6 +4524,11 @@ export const IDL: HeavenAnchorAmm = {
 					type: {
 						defined: 'TaxationMode',
 					},
+					index: false,
+				},
+				{
+					name: 'openAt',
+					type: 'u64',
 					index: false,
 				},
 			],
@@ -4526,6 +4709,31 @@ export const IDL: HeavenAnchorAmm = {
 			code: 6030,
 			name: 'InvalidUserGlobalStatsAccount',
 			msg: 'Invalid user global stats account',
+		},
+		{
+			code: 6031,
+			name: 'CannotUpdateLpLock',
+			msg: 'Cannot update lp lock',
+		},
+		{
+			code: 6032,
+			name: 'ZeroAmount',
+			msg: 'Zero amount',
+		},
+		{
+			code: 6033,
+			name: 'CannotUpdateLpOpenTime',
+			msg: 'Cannot update lp open time',
+		},
+		{
+			code: 6034,
+			name: 'CannotSetLockBurnLpTokens',
+			msg: 'Cannot set lock burn lp tokens',
+		},
+		{
+			code: 6035,
+			name: 'InvalidTax',
+			msg: 'Invalid tax',
 		},
 	],
 };
