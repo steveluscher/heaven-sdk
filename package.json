@@ -1,6 +1,6 @@
 {
 	"name": "heaven-sdk",
-	"version": "0.0.16",
+	"version": "0.0.17",
 	"description": "heaven-sdk",
 	"private": "true",
 	"typescript-template": {
@@ -68,8 +68,7 @@
 		"@solana/web3.js": "^1.91.7",
 		"bn.js": "^5.2.1",
 		"bs58": "^5.0.0",
-		"heaven-wasm-sdk-nodejs": "0.0.6",
-		"heaven-wasm-sdk": "0.0.6",
+		"heaven-wasm-sdk": "0.0.7",
 		"ipfs-only-hash": "^4.0.0"
 	}
 }
