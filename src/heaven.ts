@@ -884,6 +884,7 @@ export class Heaven {
 
         return {
             minimumOut: new BN(result.minimum_amount_out),
+            amountOut: new BN(result.swap_amount_out_after_fees),
             swapDirection,
         };
     }
