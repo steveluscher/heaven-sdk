@@ -2,11 +2,11 @@
     "compileOnSave": false,
     "compilerOptions": {
         "baseUrl": "./",
-        "outDir": "./dist",
+        "outDir": "./dist/src/browser",
         "sourceMap": true,
         "declaration": true,
-        "module": "CommonJS",
-        "moduleResolution": "node",
+        "module": "ESNext",
+        "moduleResolution": "Node",
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "esModuleInterop": true,
@@ -17,11 +17,5 @@
         "lib": ["es2020"]
     },
     "exclude": ["./dist/"],
-    "include": [
-        "./examples/",
-        "./scripts",
-        "./src/",
-        "./test/",
-        "./ts-package-config.ts"
-    ]
+    "include": ["./src/"]
 }
