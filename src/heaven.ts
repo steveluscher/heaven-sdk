@@ -52,7 +52,7 @@ import {
     estimate_exact_out_maximum_in,
     estimate_remove_liquidity_minimum_base_and_quote_token,
 } from 'heaven-wasm-sdk';
-import { parseProtocolSwapFeeDirection, parseTaxationMode } from 'src';
+import { parseProtocolSwapFeeDirection, parseTaxationMode } from './index';
 import { BN } from 'bn.js';
 
 export type BNType = anchor.BN;
