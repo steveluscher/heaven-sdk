@@ -16,20 +16,21 @@ export async function swapExactInExample() {
         'confirmed'
     );
     const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const user = Keypair.generate();
+    const payer = Keypair.generate();
 
     // Load an existing pool by id
     const pool = await Heaven.load({
         id: liquidityPoolAddress,
         network: 'devnet',
-        user: user.publicKey,
+        payer: payer.publicKey,
         connection,
     });
 
     // Swapping in 1000 base tokens for quote tokens
     const amount = new BN(1000 * 10 ** pool.baseTokenMintDecimals);
 
-    const slippage = new BN(100); // 1%
+    // Slippage BPS => 100 = 1% = 100 / 10000 * 100
+    const slippage = new BN(100);
 
     // Quote the minimum amount of quote tokens that will be received
     // based on the provided slippage
@@ -42,13 +43,21 @@ export async function swapExactInExample() {
     const ix = await pool.swapInIx({
         amount,
         quoteResult,
+        // [OPTIONAL]: The contract will emit this event when the swap is executed
         event: '',
     });
+
+    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+        console.log('Custom event:', event, poolId, instruction);
+    });
+
+    // Don't forget to unsubscribe from the custom event when you no longer need it
+    // await pool.unsubscribe(id);
 
     await sendAndConfirmTransaction(
         connection,
         new Transaction().add(ix),
-        [user],
+        [payer],
         {
             commitment: 'confirmed',
         }
