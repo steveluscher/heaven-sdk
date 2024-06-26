@@ -11,18 +11,18 @@ import { BN } from 'bn.js';
 import { Heaven } from '../../src';
 
 export async function createLiquidityPoolExample() {
-    const owner = Keypair.generate();
+    const creator = Keypair.generate();
     const connection = new Connection(
         'https://api.devnet.solana.com/', // Replace with your preferred Solana RPC endpoint
         'confirmed'
     );
 
     // Initialize a new liquidity pool
-    const pool = await Heaven.init({
+    const pool = await Heaven.new({
         base: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'), // USDC;
         quote: new PublicKey('So11111111111111111111111111111111111111112'), // WSOL;
         connection: connection,
-        owner: owner.publicKey,
+        payer: creator.publicKey,
         network: 'devnet',
     });
 
@@ -41,8 +41,16 @@ export async function createLiquidityPoolExample() {
         lockLiquidityUntil: new Date(new Date().getTime() + 60 * 1000),
         // Open pool 60 seconds after creation
         openPoolAt: new Date(new Date().getTime() + 60 * 1000),
+        // [OPTIONAL]: The contract will emit this event when the pool is created
         event: '',
     });
+
+    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+        console.log('Custom event:', event, poolId, instruction);
+    });
+
+    // Don't forget to unsubscribe from the custom event when you no longer need it
+    // await pool.unsubscribe(id);
 
     await sendAndConfirmTransaction(
         connection,
@@ -52,7 +60,7 @@ export async function createLiquidityPoolExample() {
             }),
             ix
         ),
-        [owner],
+        [creator],
         {
             commitment: 'confirmed',
         }

@@ -392,8 +392,8 @@ export class Heaven {
         protocolOwnerState: PublicKey;
     };
 
-    static async init(params: {
-        owner: PublicKey;
+    static async new(params: {
+        payer: PublicKey;
         base: PublicKey;
         quote: PublicKey;
         network: Network;
@@ -421,7 +421,7 @@ export class Heaven {
             baseTokenMint: params.base,
             baseTokenProgram: baseTokenProgram,
             network: NetworkFromString[params.network],
-            owner: params.owner,
+            owner: params.payer,
             protocolConfigVersion: 1,
             quoteTokenMint: params.quote,
             quoteTokenProgram: quoteTokenProgram,
@@ -513,6 +513,152 @@ export class Heaven {
         ).then((mint) => {
             this._quoteMint = mint;
             return this._quoteMint;
+        });
+    }
+
+    subscribeCustomEvent(
+        callback: (
+            event: string,
+            poolId: PublicKey,
+            instruction: string
+        ) => void
+    ): number {
+        return this.program.addEventListener('UserDefinedEvent', (event) => {
+            if (
+                !event.liquidityPoolId.equals(this.accounts.liquidityPoolState)
+            ) {
+                return;
+            }
+            callback(
+                event.base64Data,
+                event.liquidityPoolId,
+                event.instructionName
+            );
+        });
+    }
+
+    async unsubscribe(subscriptionId: number): Promise<void> {
+        return this.program.removeEventListener(subscriptionId);
+    }
+
+    subscribeAddLpEvent(
+        callback: (
+            baseAdded: BNType,
+            quoteAdded: BNType,
+            lpMinted: BNType,
+            poolId: PublicKey,
+            payer: PublicKey
+        ) => void
+    ) {
+        return this.program.addEventListener('AddLiquidityEvent', (event) => {
+            callback(
+                event.baseTokenInputAmount,
+                event.quoteTokenInputAmount,
+                event.lpTokenOutputAmount,
+                event.liquidityPoolId,
+                event.user
+            );
+        });
+    }
+
+    subscribeRemoveLpEvent(
+        callback: (
+            baseRemoved: BNType,
+            quoteRemoved: BNType,
+            lpBurned: BNType,
+            poolId: PublicKey,
+            payer: PublicKey
+        ) => void
+    ) {
+        return this.program.addEventListener(
+            'RemoveLiquidityEvent',
+            (event) => {
+                callback(
+                    event.baseTokenAmount,
+                    event.quoteTokenAmount,
+                    event.lpTokenAmount,
+                    event.liquidityPoolId,
+                    event.user
+                );
+            }
+        );
+    }
+
+    subscribePoolUpdatedEvent(callback: (state: LiquidityPoolState) => void) {
+        return this.program.addEventListener(
+            'UpdateLiquidityPoolEvent',
+            async (event) => {
+                if (
+                    !event.liquidityPoolId.equals(
+                        this.accounts.liquidityPoolState
+                    )
+                ) {
+                    return;
+                }
+                callback(
+                    await this.program.account.liquidityPoolState.fetch(
+                        this.accounts.liquidityPoolState,
+                        'confirmed'
+                    )
+                );
+            }
+        );
+    }
+
+    subscribeSwapOutEvent(
+        callback: (
+            amountIn: BNType,
+            amountOut: BNType,
+            poolId: PublicKey,
+            direction: SwapDirection,
+            payer: PublicKey,
+            baseBalance: BNType,
+            quoteBalance: BNType
+        ) => void
+    ) {
+        return this.program.addEventListener('SwapOutEvent', (event) => {
+            if (
+                !event.liquidityPoolId.equals(this.accounts.liquidityPoolState)
+            ) {
+                return;
+            }
+            callback(
+                event.swapAmountIn,
+                event.swapAmountOut,
+                event.liquidityPoolId,
+                event.swapDirection.base2Quote
+                    ? SwapDirection.Base2Quote
+                    : SwapDirection.Quote2Base,
+                event.user,
+                event.baseTokenVaultBalance,
+                event.quoteTokenVaultBalance
+            );
+        });
+    }
+
+    subscribeSwapInEvent(
+        callback: (
+            amountIn: BNType,
+            amountOut: BNType,
+            poolId: PublicKey,
+            direction: SwapDirection,
+            payer: PublicKey,
+            baseBalance: BNType,
+            quoteBalance: BNType
+        ) => void
+    ) {
+        return this.program.addEventListener('SwapInEvent', (event) => {
+            callback(
+                event.swapAmountIn,
+                event.swapAmountOut,
+                event.liquidityPoolId,
+                event.swapDirection.base2Quote
+                    ? SwapDirection.Base2Quote
+                    : SwapDirection.Quote2Base,
+                event.user,
+                event.baseTokenVaultBalance,
+                event.quoteTokenVaultBalance
+            );
         });
     }
 
@@ -1236,7 +1382,7 @@ export class Heaven {
     }
 
     static async load(params: {
-        user: PublicKey;
+        payer: PublicKey;
         network: Network;
         connection: Connection;
         id: PublicKey;
@@ -1244,7 +1390,7 @@ export class Heaven {
         return Heaven.initializeWithExistingPoolId({
             liquidityPoolId: params.id,
             network: NetworkFromString[params.network],
-            user: params.user,
+            user: params.payer,
         });
     }
 

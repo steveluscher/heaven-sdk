@@ -21,19 +21,19 @@ import { BN } from 'bn.js';
 import { Heaven } from 'heaven-sdk';
 
 export async function createLiquidityPoolExample() {
-    const owner = Keypair.generate();
+    const creator = Keypair.generate();
     const connection = new Connection(
         'https://api.devnet.solana.com/', // Replace with your preferred Solana RPC endpoint
         'confirmed'
     );
 
     // Initialize a new liquidity pool
-    const pool = await Heaven.init({
+    const pool = await Heaven.new({
         base: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'), // USDC;
         quote: new PublicKey('So11111111111111111111111111111111111111112'), // WSOL;
         connection: connection,
-        owner: owner.publicKey,
-        network: 'devnet',
+        payer: creator.publicKey,
+        network: 'devnet', // 'mainnet' or 'testnet'
     });
 
     const ix = await pool.createIx({
@@ -51,8 +51,16 @@ export async function createLiquidityPoolExample() {
         lockLiquidityUntil: new Date(new Date().getTime() + 60 * 1000),
         // Open pool 60 seconds after creation
         openPoolAt: new Date(new Date().getTime() + 60 * 1000),
+        // [OPTIONAL]: The contract will emit this event when the pool is created
         event: '',
     });
+
+    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+        console.log('Custom event:', event, poolId, instruction);
+    });
+
+    // Don't forget to unsubscribe from the custom event when you no longer need it
+    // await pool.unsubscribe(id);
 
     await sendAndConfirmTransaction(
         connection,
@@ -62,7 +70,7 @@ export async function createLiquidityPoolExample() {
             }),
             ix
         ),
-        [owner],
+        [creator],
         {
             commitment: 'confirmed',
         }
@@ -91,20 +99,21 @@ export async function swapExactInExample() {
         'confirmed'
     );
     const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const user = Keypair.generate();
+    const payer = Keypair.generate();
 
     // Load an existing pool by id
     const pool = await Heaven.load({
         id: liquidityPoolAddress,
-        network: 'devnet',
-        user: user.publicKey,
+        network: 'devnet', // 'mainnet' or 'testnet'
+        payer: payer.publicKey,
         connection,
     });
 
     // Swapping in 1000 base tokens for quote tokens
     const amount = new BN(1000 * 10 ** pool.baseTokenMintDecimals);
 
-    const slippage = new BN(100); // 1%
+    // Slippage BPS => 100 = 1% = 100 / 10000 * 100
+    const slippage = new BN(100);
 
     // Quote the minimum amount of quote tokens that will be received
     // based on the provided slippage
@@ -117,13 +126,21 @@ export async function swapExactInExample() {
     const ix = await pool.swapInIx({
         amount,
         quoteResult,
+        // [OPTIONAL]: The contract will emit this event when the swap is executed
         event: '',
     });
+
+    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+        console.log('Custom event:', event, poolId, instruction);
+    });
+
+    // Don't forget to unsubscribe from the custom event when you no longer need it
+    // await pool.unsubscribe(id);
 
     await sendAndConfirmTransaction(
         connection,
         new Transaction().add(ix),
-        [user],
+        [payer],
         {
             commitment: 'confirmed',
         }
@@ -152,20 +169,21 @@ export async function swapExactOutExample() {
         'confirmed'
     );
     const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const user = Keypair.generate();
+    const payer = Keypair.generate();
 
     // Load the pool
     const pool = await Heaven.load({
         id: liquidityPoolAddress,
-        network: 'devnet',
-        user: user.publicKey,
+        network: 'devnet', // 'mainnet' or 'testnet'
+        payer: payer.publicKey,
         connection,
     });
 
     // Swapping out 1000 base tokens using quote tokens
     const amountOut = new BN(1000 * 10 ** pool.baseTokenMintDecimals);
 
-    const slippage = new BN(100); // 1%
+    // Slippage BPS => 100 = 1% = 100 / 10000 * 100
+    const slippage = new BN(100);
 
     // Quote the maximum amount of quote tokens that will be spent
     // based on the provided slippage
@@ -178,13 +196,21 @@ export async function swapExactOutExample() {
     const ix = await pool.swapOutIx({
         amount: amountOut,
         quoteResult,
+        // [OPTIONAL]: The contract will emit this event when the swap is executed
         event: '',
     });
+
+    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+        console.log('Custom event:', event, poolId, instruction);
+    });
+
+    // Don't forget to unsubscribe from the custom event when you no longer need it
+    // await pool.unsubscribe(id);
 
     await sendAndConfirmTransaction(
         connection,
         new Transaction().add(ix),
-        [user],
+        [payer],
         {
             commitment: 'confirmed',
         }
@@ -213,13 +239,13 @@ export async function addLpExample() {
         'confirmed'
     );
     const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const user = Keypair.generate();
+    const payer = Keypair.generate();
 
     // Load the pool
     const pool = await Heaven.load({
         id: liquidityPoolAddress,
-        network: 'devnet',
-        user: user.publicKey,
+        network: 'devnet', // 'mainnet' or 'testnet'
+        payer: payer.publicKey,
         connection,
     });
 
@@ -231,18 +257,27 @@ export async function addLpExample() {
     const quoteResult = await pool.quoteAddLp({
         inputSide: 'base',
         amount: baseAmount,
-        slippage: new BN(100), // 1%
+        // Slippage BPS => 100 = 1% = 100 / 10000 * 100
+        slippage: new BN(100),
     });
 
     const ix = await pool.addLpIx({
         quoteResult,
+        // [OPTIONAL]: The contract will emit this event when the liquidity is added
         event: '',
     });
+
+    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+        console.log('Custom event:', event, poolId, instruction);
+    });
+
+    // Don't forget to unsubscribe from the custom event when you no longer need it
+    // await pool.unsubscribe(id);
 
     await sendAndConfirmTransaction(
         connection,
         new Transaction().add(ix),
-        [user],
+        [payer],
         {
             commitment: 'confirmed',
         }
@@ -263,7 +298,7 @@ import {
     sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import { BN } from 'bn.js';
-import { Heaven } from 'src';
+import { Heaven } from 'heaven-sdk';
 
 export async function removeLpExample() {
     const connection = new Connection(
@@ -271,13 +306,13 @@ export async function removeLpExample() {
         'confirmed'
     );
     const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const user = Keypair.generate();
+    const payer = Keypair.generate();
 
     // Load the pool
     const pool = await Heaven.load({
         id: liquidityPoolAddress,
-        network: 'devnet',
-        user: user.publicKey,
+        network: 'devnet', // 'mainnet' or 'testnet'
+        payer: payer.publicKey,
         connection,
     });
 
@@ -288,18 +323,27 @@ export async function removeLpExample() {
     // based on the provided slippage
     const quoteResult = await pool.quoteRemoveLp({
         amount: lpAmount,
-        slippage: new BN(100), // 1%
+        // Slippage BPS => 100 = 1% = 100 / 10000 * 100
+        slippage: new BN(100),
     });
 
     const ix = await pool.removeLpIx({
         quoteResult,
+        // [OPTIONAL]: The contract will emit this event when the liquidity is removed
         event: '',
     });
+
+    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+        console.log('Custom event:', event, poolId, instruction);
+    });
+
+    // Don't forget to unsubscribe from the custom event when you no longer need it
+    // await pool.unsubscribe(id);
 
     await sendAndConfirmTransaction(
         connection,
         new Transaction().add(ix),
-        [user],
+        [payer],
         {
             commitment: 'confirmed',
         }
@@ -327,13 +371,13 @@ export async function claimTaxExample() {
         'confirmed'
     );
     const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const user = Keypair.generate();
+    const payer = Keypair.generate();
 
     // Load the pool
     const pool = await Heaven.load({
         id: liquidityPoolAddress,
-        network: 'devnet',
-        user: user.publicKey,
+        network: 'devnet', // 'mainnet' or 'testnet'
+        payer: payer.publicKey,
         connection,
     });
 
@@ -345,13 +389,21 @@ export async function claimTaxExample() {
     const ix = await pool.claimTaxIx({
         base: baseAmount,
         quote: quoteAmount,
+        // [OPTIONAL]: The contract will emit this event when the tax is claimed
         event: '',
     });
+
+    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+        console.log('Custom event:', event, poolId, instruction);
+    });
+
+    // Don't forget to unsubscribe from the custom event when you no longer need it
+    // await pool.unsubscribe(id);
 
     await sendAndConfirmTransaction(
         connection,
         new Transaction().add(ix),
-        [user],
+        [payer],
         {
             commitment: 'confirmed',
         }
@@ -379,13 +431,13 @@ export async function claimLpTokensExample() {
         'confirmed'
     );
     const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const user = Keypair.generate();
+    const payer = Keypair.generate();
 
     // Load the pool
     const pool = await Heaven.load({
         id: liquidityPoolAddress,
-        network: 'devnet',
-        user: user.publicKey,
+        network: 'devnet', // 'mainnet' or 'testnet'
+        payer: payer.publicKey,
         connection,
     });
 
@@ -400,7 +452,7 @@ export async function claimLpTokensExample() {
     await sendAndConfirmTransaction(
         connection,
         new Transaction().add(ix),
-        [user],
+        [payer],
         {
             commitment: 'confirmed',
         }
@@ -428,13 +480,13 @@ export async function updateLiquidityPoolExample() {
         'confirmed'
     );
     const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const user = Keypair.generate();
+    const payer = Keypair.generate();
 
     // Load the pool
     const pool = await Heaven.load({
         id: liquidityPoolAddress,
-        network: 'devnet',
-        user: user.publicKey,
+        network: 'devnet', // 'mainnet' or 'testnet'
+        payer: payer.publicKey,
         connection,
     });
 
@@ -470,7 +522,7 @@ export async function updateLiquidityPoolExample() {
             extendLpLockIx,
             updateOpenPoolAtIx
         ),
-        [user],
+        [payer],
         {
             commitment: 'confirmed',
         }

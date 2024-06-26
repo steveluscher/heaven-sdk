@@ -15,13 +15,13 @@ export async function claimTaxExample() {
         'confirmed'
     );
     const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const user = Keypair.generate();
+    const payer = Keypair.generate();
 
     // Load the pool
     const pool = await Heaven.load({
         id: liquidityPoolAddress,
         network: 'devnet',
-        user: user.publicKey,
+        payer: payer.publicKey,
         connection,
     });
 
@@ -33,13 +33,21 @@ export async function claimTaxExample() {
     const ix = await pool.claimTaxIx({
         base: baseAmount,
         quote: quoteAmount,
+        // [OPTIONAL]: The contract will emit this event when the tax is claimed
         event: '',
     });
+
+    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+        console.log('Custom event:', event, poolId, instruction);
+    });
+
+    // Don't forget to unsubscribe from the custom event when you no longer need it
+    // await pool.unsubscribe(id);
 
     await sendAndConfirmTransaction(
         connection,
         new Transaction().add(ix),
-        [user],
+        [payer],
         {
             commitment: 'confirmed',
         }

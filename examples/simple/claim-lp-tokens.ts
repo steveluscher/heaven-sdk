@@ -15,13 +15,13 @@ export async function claimLpTokensExample() {
         'confirmed'
     );
     const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const user = Keypair.generate();
+    const payer = Keypair.generate();
 
     // Load the pool
     const pool = await Heaven.load({
         id: liquidityPoolAddress,
         network: 'devnet',
-        user: user.publicKey,
+        payer: payer.publicKey,
         connection,
     });
 
@@ -36,7 +36,7 @@ export async function claimLpTokensExample() {
     await sendAndConfirmTransaction(
         connection,
         new Transaction().add(ix),
-        [user],
+        [payer],
         {
             commitment: 'confirmed',
         }

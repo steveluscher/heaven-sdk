@@ -16,13 +16,13 @@ export async function removeLpExample() {
         'confirmed'
     );
     const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const user = Keypair.generate();
+    const payer = Keypair.generate();
 
     // Load the pool
     const pool = await Heaven.load({
         id: liquidityPoolAddress,
         network: 'devnet',
-        user: user.publicKey,
+        payer: payer.publicKey,
         connection,
     });
 
@@ -33,18 +33,27 @@ export async function removeLpExample() {
     // based on the provided slippage
     const quoteResult = await pool.quoteRemoveLp({
         amount: lpAmount,
-        slippage: new BN(100), // 1%
+        // Slippage BPS => 100 = 1% = 100 / 10000 * 100
+        slippage: new BN(100),
     });
 
     const ix = await pool.removeLpIx({
         quoteResult,
+        // [OPTIONAL]: The contract will emit this event when the liquidity is removed
         event: '',
     });
+
+    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+        console.log('Custom event:', event, poolId, instruction);
+    });
+
+    // Don't forget to unsubscribe from the custom event when you no longer need it
+    // await pool.unsubscribe(id);
 
     await sendAndConfirmTransaction(
         connection,
         new Transaction().add(ix),
-        [user],
+        [payer],
         {
             commitment: 'confirmed',
         }
