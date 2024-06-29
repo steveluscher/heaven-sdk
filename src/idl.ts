@@ -1456,6 +1456,22 @@ export type HeavenAnchorAmm = {
                     {
                         name: 'maxPrice';
                         type: 'f64';
+                    },
+                    {
+                        name: 'currPrice';
+                        type: 'f64';
+                    },
+                    {
+                        name: 'currMc';
+                        type: 'f64';
+                    },
+                    {
+                        name: 'minMc';
+                        type: 'f64';
+                    },
+                    {
+                        name: 'maxMc';
+                        type: 'f64';
                     }
                 ];
             };
@@ -2352,6 +2368,16 @@ export type HeavenAnchorAmm = {
             code: 6035;
             name: 'InvalidTax';
             msg: 'Invalid tax';
+        },
+        {
+            code: 6036;
+            name: 'InvalidChainlinkFeedAccount';
+            msg: 'Invalid chainlink feed account';
+        },
+        {
+            code: 6037;
+            name: 'InvalidChainlinkProgram';
+            msg: 'Invalid chainlink program';
         }
     ];
 };
@@ -3815,6 +3841,22 @@ export const IDL: HeavenAnchorAmm = {
                         name: 'maxPrice',
                         type: 'f64',
                     },
+                    {
+                        name: 'currPrice',
+                        type: 'f64',
+                    },
+                    {
+                        name: 'currMc',
+                        type: 'f64',
+                    },
+                    {
+                        name: 'minMc',
+                        type: 'f64',
+                    },
+                    {
+                        name: 'maxMc',
+                        type: 'f64',
+                    },
                 ],
             },
         },
@@ -4710,6 +4752,16 @@ export const IDL: HeavenAnchorAmm = {
             code: 6035,
             name: 'InvalidTax',
             msg: 'Invalid tax',
+        },
+        {
+            code: 6036,
+            name: 'InvalidChainlinkFeedAccount',
+            msg: 'Invalid chainlink feed account',
+        },
+        {
+            code: 6037,
+            name: 'InvalidChainlinkProgram',
+            msg: 'Invalid chainlink program',
         },
     ],
 };
