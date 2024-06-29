@@ -272,7 +272,19 @@ export class Heaven {
     ) {
         return this.program.methods
             .swapIn(params)
-            .accountsStrict(this.accounts);
+            .accountsStrict(this.accounts)
+            .remainingAccounts([
+                {
+                    pubkey: this.chainLinkFeed,
+                    isWritable: false,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkProgram,
+                    isWritable: false,
+                    isSigner: false,
+                },
+            ]);
     }
 
     makeUpdateLiquidityPoolInstruction(
@@ -288,7 +300,19 @@ export class Heaven {
     ) {
         return this.program.methods
             .swapOut(params)
-            .accountsStrict(this.accounts);
+            .accountsStrict(this.accounts)
+            .remainingAccounts([
+                {
+                    pubkey: this.chainLinkFeed,
+                    isWritable: false,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkProgram,
+                    isWritable: false,
+                    isSigner: false,
+                },
+            ]);
     }
 
     makeAddLiquidityInstruction(
@@ -296,7 +320,19 @@ export class Heaven {
     ) {
         return this.program.methods
             .addLiquidity(params)
-            .accountsStrict(this.accounts);
+            .accountsStrict(this.accounts)
+            .remainingAccounts([
+                {
+                    pubkey: this.chainLinkFeed,
+                    isWritable: false,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkProgram,
+                    isWritable: false,
+                    isSigner: false,
+                },
+            ]);
     }
 
     makeRemoveLiquidityInstruction(
@@ -304,7 +340,19 @@ export class Heaven {
     ) {
         return this.program.methods
             .removeLiquidity(params)
-            .accountsStrict(this.accounts);
+            .accountsStrict(this.accounts)
+            .remainingAccounts([
+                {
+                    pubkey: this.chainLinkFeed,
+                    isWritable: false,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkProgram,
+                    isWritable: false,
+                    isSigner: false,
+                },
+            ]);
     }
 
     makeCreateProtocolConfigInstruction(
