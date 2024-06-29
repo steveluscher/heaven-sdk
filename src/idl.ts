@@ -1410,6 +1410,10 @@ export type HeavenAnchorAmm = {
                         type: 'u128';
                     },
                     {
+                        name: 'isInitialLpBurned';
+                        type: 'bool';
+                    },
+                    {
                         name: 'baseTokenAdded';
                         type: 'u128';
                     },
@@ -3792,6 +3796,10 @@ export const IDL: HeavenAnchorAmm = {
                     {
                         name: 'liquidityRemoved',
                         type: 'u128',
+                    },
+                    {
+                        name: 'isInitialLpBurned',
+                        type: 'bool',
                     },
                     {
                         name: 'baseTokenAdded',

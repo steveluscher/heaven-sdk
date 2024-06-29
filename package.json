@@ -1,6 +1,6 @@
 {
 	"name": "heaven-sdk",
-	"version": "0.0.22-rc.3",
+	"version": "0.0.22-rc.4",
 	"description": "heaven-sdk",
 	"private": "true",
 	"typescript-template": {
