@@ -160,6 +160,15 @@ export const HeavenSupportedNetworkProtocolOwnerWallet = {
     ),
 };
 
+export const HeavenSupportedNetworkChainLinkFeed = {
+    [HeavenSupportedNetwork.devnet]: new PublicKey(
+        '99B2bTijsU6f1GCT73HmdR7HCFFjGMBcPZY6jZ96ynrR'
+    ),
+    [HeavenSupportedNetwork.mainnet]: new PublicKey(
+        'CH31Xns5z3M1cTAbKW34jcxPPciazARpijcHj9rxtemt'
+    ),
+};
+
 export enum HeavenSupportedStableCoin {
     WSOL,
     USDC,
@@ -355,6 +364,16 @@ export class Heaven {
                 {
                     pubkey: this.accounts.userGlobalStats,
                     isWritable: true,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkFeed,
+                    isWritable: false,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkProgram,
+                    isWritable: false,
                     isSigner: false,
                 },
             ]);
@@ -611,9 +630,7 @@ export class Heaven {
             amountOut: BNType,
             poolId: PublicKey,
             direction: SwapDirection,
-            payer: PublicKey,
-            baseBalance: BNType,
-            quoteBalance: BNType
+            payer: PublicKey
         ) => void
     ) {
         return this.program.addEventListener('SwapOutEvent', (event) => {
@@ -629,9 +646,7 @@ export class Heaven {
                 event.swapDirection.base2Quote
                     ? SwapDirection.Base2Quote
                     : SwapDirection.Quote2Base,
-                event.user,
-                event.baseTokenVaultBalance,
-                event.quoteTokenVaultBalance
+                event.user
             );
         });
     }
@@ -642,9 +657,7 @@ export class Heaven {
             amountOut: BNType,
             poolId: PublicKey,
             direction: SwapDirection,
-            payer: PublicKey,
-            baseBalance: BNType,
-            quoteBalance: BNType
+            payer: PublicKey
         ) => void
     ) {
         return this.program.addEventListener('SwapInEvent', (event) => {
@@ -655,9 +668,7 @@ export class Heaven {
                 event.swapDirection.base2Quote
                     ? SwapDirection.Base2Quote
                     : SwapDirection.Quote2Base,
-                event.user,
-                event.baseTokenVaultBalance,
-                event.quoteTokenVaultBalance
+                event.user
             );
         });
     }
@@ -1657,6 +1668,13 @@ export class Heaven {
     get lpTokenLockVaultBump(): number {
         return this._lpTokenLockVault[1];
     }
+
+    get chainLinkFeed(): PublicKey {
+        return HeavenSupportedNetworkChainLinkFeed[this.network];
+    }
+    chainLinkProgram: PublicKey = new PublicKey(
+        'HEvSKofvBgfaexv23kMabbYqxasxU3mQ4ibBMEmJWHny'
+    );
 
     _baseTokenProgram: PublicKey;
     get baseTokenProgram(): PublicKey {
