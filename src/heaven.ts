@@ -1430,16 +1430,19 @@ export class Heaven {
         return new Heaven(params);
     }
 
-    static createProgram(network: HeavenSupportedNetwork) {
+    static createProgram(
+        network: HeavenSupportedNetwork,
+        connection?: Connection
+    ) {
         const programId = HeavenSupportedNetworkProgramId[network];
 
-        const connection = new Connection(
-            HeavenSupportedNetworkClusterApiUrl[network],
-            'confirmed'
-        );
-
         const program = new Program<HeavenAnchorAmm>(IDL, programId, {
-            connection,
+            connection:
+                connection ??
+                new Connection(
+                    HeavenSupportedNetworkClusterApiUrl[network],
+                    'confirmed'
+                ),
         });
         return program;
     }
