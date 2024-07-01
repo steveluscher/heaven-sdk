@@ -375,7 +375,7 @@ export class Heaven {
         params: anchor.IdlTypes<HeavenAnchorAmm>['ProtocolConfigParams']
     ) {
         return this.program.methods
-            .updateProtocolConfig(params)
+            .updateProtocolConfig(version, params)
             .accountsStrict({
                 ...this.accounts,
                 protocolConfigState: Heaven.deriveProtocolConfigPda(

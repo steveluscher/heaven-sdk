@@ -551,6 +551,10 @@ export type HeavenAnchorAmm = {
             ];
             args: [
                 {
+                    name: 'version';
+                    type: 'u16';
+                },
+                {
                     name: 'params';
                     type: {
                         defined: 'ProtocolConfigParams';
@@ -2382,6 +2386,11 @@ export type HeavenAnchorAmm = {
             code: 6037;
             name: 'InvalidChainlinkProgram';
             msg: 'Invalid chainlink program';
+        },
+        {
+            code: 6038;
+            name: 'InvalidConfigVersion';
+            msg: 'Invalid config version';
         }
     ];
 };
@@ -2938,6 +2947,10 @@ export const IDL: HeavenAnchorAmm = {
                 },
             ],
             args: [
+                {
+                    name: 'version',
+                    type: 'u16',
+                },
                 {
                     name: 'params',
                     type: {
@@ -4770,6 +4783,11 @@ export const IDL: HeavenAnchorAmm = {
             code: 6037,
             name: 'InvalidChainlinkProgram',
             msg: 'Invalid chainlink program',
+        },
+        {
+            code: 6038,
+            name: 'InvalidConfigVersion',
+            msg: 'Invalid config version',
         },
     ],
 };
