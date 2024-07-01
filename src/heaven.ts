@@ -114,17 +114,17 @@ export const HeavenSupportedNetworkName = {
 
 export const HeavenSupportedNetworkProgramId = {
     [HeavenSupportedNetwork.localnet]: new PublicKey(
-        'BFbT2pvqgUFytCBNAWf1i5b2XjNfeEWLk661K1ADTABQ'
+        'HEAVEnMX7RoaYCucpyFterLWzFJR8Ah26oNSnqBs5Jtn'
     ),
     [HeavenSupportedNetwork.devnet]: new PublicKey(
-        'BFbT2pvqgUFytCBNAWf1i5b2XjNfeEWLk661K1ADTABQ'
+        'HEAVEnMX7RoaYCucpyFterLWzFJR8Ah26oNSnqBs5Jtn'
     ),
     [HeavenSupportedNetwork.testnet]: new PublicKey(
-        'BFbT2pvqgUFytCBNAWf1i5b2XjNfeEWLk661K1ADTABQ'
+        'HEAVEnMX7RoaYCucpyFterLWzFJR8Ah26oNSnqBs5Jtn'
     ),
     // TODO: Replace this with the correct mainnet program ID
     [HeavenSupportedNetwork.mainnet]: new PublicKey(
-        'BFbT2pvqgUFytCBNAWf1i5b2XjNfeEWLk661K1ADTABQ'
+        'HEAVEnMX7RoaYCucpyFterLWzFJR8Ah26oNSnqBs5Jtn'
     ),
 };
 
