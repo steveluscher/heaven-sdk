@@ -2097,7 +2097,7 @@ export class Heaven {
                 mint, // mint pubkey
                 params.decimals, // decimals
                 params.payer, // mint authority
-                params.payer // freeze authority (you can use `null` to disable it. when you disable it, you can't turn it on again)
+                null // freeze authority (you can use `null` to disable it. when you disable it, you can't turn it on again)
             )
         );
         return tx;
