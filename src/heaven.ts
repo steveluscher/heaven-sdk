@@ -130,33 +130,33 @@ export const HeavenSupportedNetworkProgramId = {
 
 export const HeavenSupportedNetworkPoolCreationFeeWallet = {
     [HeavenSupportedNetwork.localnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        'CYTDCTNLEaBFD5GLs6MyaoVh4nqozH2B4vNPWEBgNBsX'
     ),
     [HeavenSupportedNetwork.devnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        'CYTDCTNLEaBFD5GLs6MyaoVh4nqozH2B4vNPWEBgNBsX'
     ),
     [HeavenSupportedNetwork.testnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        'CYTDCTNLEaBFD5GLs6MyaoVh4nqozH2B4vNPWEBgNBsX'
     ),
     // TODO: Replace this with the correct mainnet program ID
     [HeavenSupportedNetwork.mainnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        'EwyiKUDFcQp8wCFMYjYYb933SzEPea4HwSDLsV6Mvyv6'
     ),
 };
 
 export const HeavenSupportedNetworkProtocolOwnerWallet = {
     [HeavenSupportedNetwork.localnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        '6GM1A5oYPLYn1c1sX1YmiUhWRP9yV5BgGaFTBf58XvdX'
     ),
     [HeavenSupportedNetwork.devnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        '6GM1A5oYPLYn1c1sX1YmiUhWRP9yV5BgGaFTBf58XvdX'
     ),
     [HeavenSupportedNetwork.testnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        '6GM1A5oYPLYn1c1sX1YmiUhWRP9yV5BgGaFTBf58XvdX'
     ),
     // TODO: Replace this with the correct mainnet program ID
     [HeavenSupportedNetwork.mainnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        '4pzsDpf674wzgSdn5oRzGLBTd9gWgWoHqycMymg9hmPq'
     ),
 };
 
