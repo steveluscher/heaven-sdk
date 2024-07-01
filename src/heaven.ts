@@ -1447,6 +1447,8 @@ export class Heaven {
         return program;
     }
 
+    static create() {}
+
     static async load(params: {
         payer: PublicKey;
         network: Network;
@@ -1536,6 +1538,7 @@ export class Heaven {
             connection,
             baseTokenMintDecimals: poolInfo.baseTokenMintDecimals,
             quoteTokenMintDecimals: poolInfo.quoteTokenMintDecimals,
+            state: poolInfo,
         });
     }
 
@@ -1553,8 +1556,10 @@ export class Heaven {
             connection?: Connection;
             baseTokenMintDecimals: number;
             quoteTokenMintDecimals: number;
+            state?: LiquidityPoolState;
         }
     ) {
+        this._state = params.state;
         this.baseTokenMintDecimals = params.baseTokenMintDecimals;
         this.quoteTokenMintDecimals = params.quoteTokenMintDecimals;
         this.lpTokenMintDecimals =
@@ -1698,6 +1703,19 @@ export class Heaven {
                 this.programId
             )[0],
         };
+    }
+
+    _state?: LiquidityPoolState;
+    get state(): Promise<LiquidityPoolState> {
+        if (this._state) {
+            return Promise.resolve(this._state);
+        }
+        return this.program.account.liquidityPoolState
+            .fetch(this.accounts.liquidityPoolState)
+            .then((state) => {
+                this._state = state;
+                return state;
+            });
     }
 
     poolCreationFeeWallet: PublicKey;
