@@ -1458,6 +1458,7 @@ export class Heaven {
         return Heaven.initializeWithExistingPoolId({
             liquidityPoolId: params.id,
             network: NetworkFromString[params.network],
+            connection: params.connection,
             user: params.payer,
         });
     }
