@@ -493,6 +493,50 @@ export const IDL = {
             ],
         },
         {
+            name: 'create_extras_account',
+            discriminator: [232, 203, 133, 126, 114, 81, 33, 190],
+            accounts: [
+                {
+                    name: 'system_program',
+                    address: '11111111111111111111111111111111',
+                },
+                {
+                    name: 'data',
+                    writable: true,
+                    pda: {
+                        seeds: [
+                            {
+                                kind: 'const',
+                                value: [
+                                    101, 120, 116, 114, 97, 115, 95, 97, 99, 99,
+                                    111, 117, 110, 116,
+                                ],
+                            },
+                            {
+                                kind: 'account',
+                                path: 'user',
+                            },
+                        ],
+                    },
+                },
+                {
+                    name: 'user',
+                    writable: true,
+                    signer: true,
+                },
+            ],
+            args: [
+                {
+                    name: 'value',
+                    type: {
+                        defined: {
+                            name: 'ExtrasAccountParams',
+                        },
+                    },
+                },
+            ],
+        },
+        {
             name: 'create_liquidity_pool',
             discriminator: [175, 75, 181, 165, 224, 254, 6, 131],
             accounts: [
@@ -1543,7 +1587,7 @@ export const IDL = {
                     name: 'params',
                     type: {
                         defined: {
-                            name: 'ProtocolConfigParams',
+                            name: 'UpdateLiquidityPoolProtocolConfigParams',
                         },
                     },
                 },
@@ -2098,6 +2142,14 @@ export const IDL = {
                         name: 'disable_non_creator_add_liquidity',
                         type: 'bool',
                     },
+                    {
+                        name: 'extras',
+                        type: {
+                            option: {
+                                array: ['u8', 8],
+                            },
+                        },
+                    },
                 ],
             },
         },
@@ -2568,20 +2620,18 @@ export const IDL = {
                         type: 'bool',
                     },
                     {
-                        name: 'extra1',
-                        type: {
-                            option: {
-                                array: ['u8', 32],
-                            },
-                        },
-                    },
-                    {
-                        name: 'extra2',
-                        type: 'u64',
-                    },
-                    {
                         name: 'disable_non_creator_add_liquidity',
                         type: 'bool',
+                    },
+                    {
+                        name: 'allow_creator_claim_swap_fee',
+                        type: 'bool',
+                    },
+                    {
+                        name: 'extras',
+                        type: {
+                            array: ['u8', 8],
+                        },
                     },
                 ],
             },
@@ -3123,6 +3173,42 @@ export const IDL = {
             },
         },
         {
+            name: 'UpdateLiquidityPoolProtocolConfigParams',
+            type: {
+                kind: 'struct',
+                fields: [
+                    {
+                        name: 'protocol_swap_fee_numerator',
+                        type: 'u64',
+                    },
+                    {
+                        name: 'protocol_swap_fee_denominator',
+                        type: 'u64',
+                    },
+                    {
+                        name: 'swap_fee_numerator',
+                        type: 'u64',
+                    },
+                    {
+                        name: 'swap_fee_denominator',
+                        type: 'u64',
+                    },
+                    {
+                        name: 'protocol_tax_numerator',
+                        type: 'u64',
+                    },
+                    {
+                        name: 'protocol_tax_denominator',
+                        type: 'u64',
+                    },
+                    {
+                        name: 'allow_creator_claim_swap_fee',
+                        type: 'bool',
+                    },
+                ],
+            },
+        },
+        {
             name: 'UserDefinedEvent',
             type: {
                 kind: 'struct',
@@ -3144,9 +3230,14 @@ export const IDL = {
         },
     ],
 };
-
+/**
+ * Program IDL in camelCase format in order to be used in JS/TS.
+ *
+ * Note that this is only a type helper and is not the actual IDL. The original
+ * IDL can be found at `target/idl/heaven_anchor_amm.json`.
+ */
 export type HeavenAnchorAmm = {
-    address: 'So11111111111111111111111111111111111111112';
+    address: 'HEAVEnMX7RoaYCucpyFterLWzFJR8Ah26oNSnqBs5Jtn';
     metadata: {
         name: 'heavenAnchorAmm';
         version: '0.1.0';
@@ -3781,6 +3872,62 @@ export type HeavenAnchorAmm = {
                     type: {
                         defined: {
                             name: 'claimSwapTaxParams';
+                        };
+                    };
+                }
+            ];
+        },
+        {
+            name: 'createExtrasAccount';
+            discriminator: [232, 203, 133, 126, 114, 81, 33, 190];
+            accounts: [
+                {
+                    name: 'systemProgram';
+                    address: '11111111111111111111111111111111';
+                },
+                {
+                    name: 'data';
+                    writable: true;
+                    pda: {
+                        seeds: [
+                            {
+                                kind: 'const';
+                                value: [
+                                    101,
+                                    120,
+                                    116,
+                                    114,
+                                    97,
+                                    115,
+                                    95,
+                                    97,
+                                    99,
+                                    99,
+                                    111,
+                                    117,
+                                    110,
+                                    116
+                                ];
+                            },
+                            {
+                                kind: 'account';
+                                path: 'user';
+                            }
+                        ];
+                    };
+                },
+                {
+                    name: 'user';
+                    writable: true;
+                    signer: true;
+                }
+            ];
+            args: [
+                {
+                    name: 'value';
+                    type: {
+                        defined: {
+                            name: 'extrasAccountParams';
                         };
                     };
                 }
@@ -5165,7 +5312,7 @@ export type HeavenAnchorAmm = {
                     name: 'params';
                     type: {
                         defined: {
-                            name: 'protocolConfigParams';
+                            name: 'updateLiquidityPoolProtocolConfigParams';
                         };
                     };
                 }
@@ -5736,6 +5883,14 @@ export type HeavenAnchorAmm = {
                     {
                         name: 'disableNonCreatorAddLiquidity';
                         type: 'bool';
+                    },
+                    {
+                        name: 'extras';
+                        type: {
+                            option: {
+                                array: ['u8', 8];
+                            };
+                        };
                     }
                 ];
             };
@@ -6207,20 +6362,18 @@ export type HeavenAnchorAmm = {
                         type: 'bool';
                     },
                     {
-                        name: 'extra1';
-                        type: {
-                            option: {
-                                array: ['u8', 32];
-                            };
-                        };
-                    },
-                    {
-                        name: 'extra2';
-                        type: 'u64';
-                    },
-                    {
                         name: 'disableNonCreatorAddLiquidity';
                         type: 'bool';
+                    },
+                    {
+                        name: 'allowCreatorClaimSwapFee';
+                        type: 'bool';
+                    },
+                    {
+                        name: 'extras';
+                        type: {
+                            array: ['u8', 8];
+                        };
                     }
                 ];
             };
@@ -6757,6 +6910,42 @@ export type HeavenAnchorAmm = {
                     {
                         name: 'openAt';
                         type: 'u64';
+                    }
+                ];
+            };
+        },
+        {
+            name: 'updateLiquidityPoolProtocolConfigParams';
+            type: {
+                kind: 'struct';
+                fields: [
+                    {
+                        name: 'protocolSwapFeeNumerator';
+                        type: 'u64';
+                    },
+                    {
+                        name: 'protocolSwapFeeDenominator';
+                        type: 'u64';
+                    },
+                    {
+                        name: 'swapFeeNumerator';
+                        type: 'u64';
+                    },
+                    {
+                        name: 'swapFeeDenominator';
+                        type: 'u64';
+                    },
+                    {
+                        name: 'protocolTaxNumerator';
+                        type: 'u64';
+                    },
+                    {
+                        name: 'protocolTaxDenominator';
+                        type: 'u64';
+                    },
+                    {
+                        name: 'allowCreatorClaimSwapFee';
+                        type: 'bool';
                     }
                 ];
             };

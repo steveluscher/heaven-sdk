@@ -1416,6 +1416,7 @@ export class Heaven {
             inputQuoteTokenAmount: params.quoteAmount,
             disableNonCreatorAddLiquidity:
                 params.disableNonCreatorAddLiquidity ?? false,
+            extras: [0, 0, 0, 0, 0, 0, 0, 0],
         }).instruction();
 
         return ix;
