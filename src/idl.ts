@@ -1275,34 +1275,6 @@ export type HeavenAnchorAmm = {
                     type: 'u64';
                 }
             ];
-        },
-        {
-            name: 'createExtrasAccount';
-            accounts: [
-                {
-                    name: 'systemProgram';
-                    isMut: false;
-                    isSigner: false;
-                },
-                {
-                    name: 'data';
-                    isMut: true;
-                    isSigner: false;
-                },
-                {
-                    name: 'user';
-                    isMut: true;
-                    isSigner: true;
-                }
-            ];
-            args: [
-                {
-                    name: 'value';
-                    type: {
-                        defined: 'ExtrasAccountParams';
-                    };
-                }
-            ];
         }
     ];
     accounts: [
@@ -1971,83 +1943,6 @@ export type HeavenAnchorAmm = {
                     }
                 ];
             };
-        },
-        {
-            name: 'extras';
-            type: {
-                kind: 'struct';
-                fields: [
-                    {
-                        name: 'padding';
-                        type: {
-                            array: ['u8', 17];
-                        };
-                    },
-                    {
-                        name: 'padding1';
-                        type: {
-                            array: ['u8', 5];
-                        };
-                    },
-                    {
-                        name: 'extra1Data';
-                        type: 'bytes';
-                    },
-                    {
-                        name: 'padding2';
-                        type: {
-                            array: ['u8', 3];
-                        };
-                    },
-                    {
-                        name: 'extra1Threshold';
-                        type: 'u64';
-                    },
-                    {
-                        name: 'padding3';
-                        type: {
-                            array: ['u8', 12];
-                        };
-                    },
-                    {
-                        name: 'extra1Bits';
-                        type: 'u64';
-                    },
-                    {
-                        name: 'padding4';
-                        type: {
-                            array: ['u8', 1];
-                        };
-                    },
-                    {
-                        name: 'extra1HashF';
-                        type: 'u32';
-                    },
-                    {
-                        name: 'padding5';
-                        type: {
-                            array: ['u8', 1];
-                        };
-                    },
-                    {
-                        name: 'extra1Keys';
-                        type: {
-                            array: [
-                                {
-                                    defined: '(u64,u64)';
-                                },
-                                2
-                            ];
-                        };
-                    },
-                    {
-                        name: 'padding6';
-                        type: {
-                            array: ['u8', 1];
-                        };
-                    }
-                ];
-            };
         }
     ];
     types: [
@@ -2373,83 +2268,6 @@ export type HeavenAnchorAmm = {
                     {
                         name: 'openAt';
                         type: 'u64';
-                    }
-                ];
-            };
-        },
-        {
-            name: 'ExtrasAccountParams';
-            type: {
-                kind: 'struct';
-                fields: [
-                    {
-                        name: 'padding';
-                        type: {
-                            array: ['u8', 17];
-                        };
-                    },
-                    {
-                        name: 'extra1Data';
-                        type: 'bytes';
-                    },
-                    {
-                        name: 'padding2';
-                        type: {
-                            array: ['u8', 3];
-                        };
-                    },
-                    {
-                        name: 'extra1Keys';
-                        type: {
-                            array: [
-                                {
-                                    defined: '(u64,u64)';
-                                },
-                                2
-                            ];
-                        };
-                    },
-                    {
-                        name: 'padding3';
-                        type: {
-                            array: ['u8', 12];
-                        };
-                    },
-                    {
-                        name: 'extra1Bits';
-                        type: 'u64';
-                    },
-                    {
-                        name: 'padding4';
-                        type: {
-                            array: ['u8', 1];
-                        };
-                    },
-                    {
-                        name: 'extra1Threshold';
-                        type: 'u64';
-                    },
-                    {
-                        name: 'padding5';
-                        type: {
-                            array: ['u8', 1];
-                        };
-                    },
-                    {
-                        name: 'extra1HashF';
-                        type: 'u32';
-                    },
-                    {
-                        name: 'padding1';
-                        type: {
-                            array: ['u8', 5];
-                        };
-                    },
-                    {
-                        name: 'padding6';
-                        type: {
-                            array: ['u8', 1];
-                        };
                     }
                 ];
             };
@@ -4312,34 +4130,6 @@ export const IDL: HeavenAnchorAmm = {
                 },
             ],
         },
-        {
-            name: 'createExtrasAccount',
-            accounts: [
-                {
-                    name: 'systemProgram',
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: 'data',
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: 'user',
-                    isMut: true,
-                    isSigner: true,
-                },
-            ],
-            args: [
-                {
-                    name: 'value',
-                    type: {
-                        defined: 'ExtrasAccountParams',
-                    },
-                },
-            ],
-        },
     ],
     accounts: [
         {
@@ -5008,83 +4798,6 @@ export const IDL: HeavenAnchorAmm = {
                 ],
             },
         },
-        {
-            name: 'extras',
-            type: {
-                kind: 'struct',
-                fields: [
-                    {
-                        name: 'padding',
-                        type: {
-                            array: ['u8', 17],
-                        },
-                    },
-                    {
-                        name: 'padding1',
-                        type: {
-                            array: ['u8', 5],
-                        },
-                    },
-                    {
-                        name: 'extra1Data',
-                        type: 'bytes',
-                    },
-                    {
-                        name: 'padding2',
-                        type: {
-                            array: ['u8', 3],
-                        },
-                    },
-                    {
-                        name: 'extra1Threshold',
-                        type: 'u64',
-                    },
-                    {
-                        name: 'padding3',
-                        type: {
-                            array: ['u8', 12],
-                        },
-                    },
-                    {
-                        name: 'extra1Bits',
-                        type: 'u64',
-                    },
-                    {
-                        name: 'padding4',
-                        type: {
-                            array: ['u8', 1],
-                        },
-                    },
-                    {
-                        name: 'extra1HashF',
-                        type: 'u32',
-                    },
-                    {
-                        name: 'padding5',
-                        type: {
-                            array: ['u8', 1],
-                        },
-                    },
-                    {
-                        name: 'extra1Keys',
-                        type: {
-                            array: [
-                                {
-                                    defined: '(u64,u64)',
-                                },
-                                2,
-                            ],
-                        },
-                    },
-                    {
-                        name: 'padding6',
-                        type: {
-                            array: ['u8', 1],
-                        },
-                    },
-                ],
-            },
-        },
     ],
     types: [
         {
@@ -5409,83 +5122,6 @@ export const IDL: HeavenAnchorAmm = {
                     {
                         name: 'openAt',
                         type: 'u64',
-                    },
-                ],
-            },
-        },
-        {
-            name: 'ExtrasAccountParams',
-            type: {
-                kind: 'struct',
-                fields: [
-                    {
-                        name: 'padding',
-                        type: {
-                            array: ['u8', 17],
-                        },
-                    },
-                    {
-                        name: 'extra1Data',
-                        type: 'bytes',
-                    },
-                    {
-                        name: 'padding2',
-                        type: {
-                            array: ['u8', 3],
-                        },
-                    },
-                    {
-                        name: 'extra1Keys',
-                        type: {
-                            array: [
-                                {
-                                    defined: '(u64,u64)',
-                                },
-                                2,
-                            ],
-                        },
-                    },
-                    {
-                        name: 'padding3',
-                        type: {
-                            array: ['u8', 12],
-                        },
-                    },
-                    {
-                        name: 'extra1Bits',
-                        type: 'u64',
-                    },
-                    {
-                        name: 'padding4',
-                        type: {
-                            array: ['u8', 1],
-                        },
-                    },
-                    {
-                        name: 'extra1Threshold',
-                        type: 'u64',
-                    },
-                    {
-                        name: 'padding5',
-                        type: {
-                            array: ['u8', 1],
-                        },
-                    },
-                    {
-                        name: 'extra1HashF',
-                        type: 'u32',
-                    },
-                    {
-                        name: 'padding1',
-                        type: {
-                            array: ['u8', 5],
-                        },
-                    },
-                    {
-                        name: 'padding6',
-                        type: {
-                            array: ['u8', 1],
-                        },
                     },
                 ],
             },
