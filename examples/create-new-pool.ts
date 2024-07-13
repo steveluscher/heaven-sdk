@@ -59,6 +59,7 @@ async function test() {
             sellTax: new BN(100),
             buyTax: new BN(25),
             burnLpTokens,
+            disableNonCreatorAddLiquidity: false,
         })
         .instruction();
 
