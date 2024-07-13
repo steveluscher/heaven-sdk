@@ -24,6 +24,8 @@ export async function createLiquidityPoolExample() {
         connection: connection,
         payer: creator.publicKey,
         network: 'devnet',
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     const ix = await pool.createIx({
@@ -43,6 +45,12 @@ export async function createLiquidityPoolExample() {
         openPoolAt: new Date(new Date().getTime() + 60 * 1000),
         // [OPTIONAL]: The contract will emit this event when the pool is created
         event: '',
+        // [OPTIONAL]: Only allow pool creatot to add additional liquidity.
+        // Default is `false`.
+        // Important: This cannot be changed after pool creation.
+        // Setting this to `true` will only allow the pool creator to collect swap fees without pulling
+        // all the liquidity from the pool.
+        disableNonCreatorAddLiquidity: true,
     });
 
     const id = pool.subscribeCustomEvent((event, poolId, instruction) => {

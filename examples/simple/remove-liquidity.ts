@@ -24,6 +24,8 @@ export async function removeLpExample() {
         network: 'devnet',
         payer: payer.publicKey,
         connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     // Remove 1000 lp tokens

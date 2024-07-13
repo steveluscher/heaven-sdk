@@ -7,6 +7,7 @@ import {
     Transaction,
     sendAndConfirmTransaction,
 } from '@solana/web3.js';
+import { BN } from 'bn.js';
 import { Heaven } from 'src';
 
 export async function updateLiquidityPoolExample() {
@@ -23,6 +24,8 @@ export async function updateLiquidityPoolExample() {
         network: 'devnet',
         payer: payer.publicKey,
         connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     const enableAddLpIx = await pool.enableAddLpIx();
@@ -31,6 +34,14 @@ export async function updateLiquidityPoolExample() {
     const disableAddLpIx = await pool.disableAddLpIx();
     const disableRemoveLpIx = await pool.disableRemoveLpIx();
     const disableSwapIx = await pool.disableSwapIx();
+    const updateSellTaxIx = await pool.updateSellTaxIx({
+        sellTax: new BN(30), // 30 BPS = 30 / 10000 * 100 = 0.3%
+    });
+    const updateBuyTaxIx = await pool.updateBuyTaxIx({
+        buyTax: new BN(30), // 30 BPS = 30 / 10000 * 100 = 0.3%
+    });
+    // You can lock the buy and sell tax rates forever to ensure that they cannot be changed
+    const lockTaxationIx = await pool.lockTaxationIx();
 
     const currentLpLockTs = await pool.getCurrentLpLockTimestamp();
     const extendedLpLockTs = currentLpLockTs.getTime() + 60 * 60 * 1000; // extend the lock by 1 hour
@@ -55,7 +66,10 @@ export async function updateLiquidityPoolExample() {
             disableRemoveLpIx,
             disableSwapIx,
             extendLpLockIx,
-            updateOpenPoolAtIx
+            updateOpenPoolAtIx,
+            updateSellTaxIx,
+            updateBuyTaxIx,
+            lockTaxationIx
         ),
         [payer],
         {

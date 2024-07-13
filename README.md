@@ -123,7 +123,9 @@ export async function createLiquidityPoolExample() {
         quote: new PublicKey('So11111111111111111111111111111111111111112'), // WSOL;
         connection: connection,
         payer: creator.publicKey,
-        network: 'devnet', // 'mainnet' or 'testnet'
+        network: 'devnet', // 'mainnet' or 'testnet',
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     const ix = await pool.createIx({
@@ -143,6 +145,12 @@ export async function createLiquidityPoolExample() {
         openPoolAt: new Date(new Date().getTime() + 60 * 1000),
         // [OPTIONAL]: The contract will emit this event when the pool is created
         event: '',
+        // [OPTIONAL]: Only allow pool creatot to add additional liquidity.
+        // Default is `false`.
+        // Important: This cannot be changed after pool creation.
+        // Setting this to `true` will only allow the pool creator to collect swap fees without pulling
+        // all the liquidity from the pool.
+        disableNonCreatorAddLiquidity: true,
     });
 
     const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
@@ -197,6 +205,8 @@ export async function swapExactInExample() {
         network: 'devnet', // 'mainnet' or 'testnet'
         payer: payer.publicKey,
         connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     // Swapping in 1000 base tokens for quote tokens
@@ -267,6 +277,8 @@ export async function swapExactOutExample() {
         network: 'devnet', // 'mainnet' or 'testnet'
         payer: payer.publicKey,
         connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     // Swapping out 1000 base tokens using quote tokens
@@ -337,6 +349,8 @@ export async function addLpExample() {
         network: 'devnet', // 'mainnet' or 'testnet'
         payer: payer.publicKey,
         connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     // Adding 1000 base tokens
@@ -404,6 +418,8 @@ export async function removeLpExample() {
         network: 'devnet', // 'mainnet' or 'testnet'
         payer: payer.publicKey,
         connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     // Remove 1000 lp tokens
@@ -469,6 +485,8 @@ export async function claimTaxExample() {
         network: 'devnet', // 'mainnet' or 'testnet'
         payer: payer.publicKey,
         connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     // Get the current tax balances
@@ -529,6 +547,8 @@ export async function claimLpTokensExample() {
         network: 'devnet', // 'mainnet' or 'testnet'
         payer: payer.publicKey,
         connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     // Get the current locked lp token account balance
@@ -578,6 +598,8 @@ export async function updateLiquidityPoolExample() {
         network: 'devnet', // 'mainnet' or 'testnet'
         payer: payer.publicKey,
         connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     const enableAddLpIx = await pool.enableAddLpIx();
@@ -586,6 +608,14 @@ export async function updateLiquidityPoolExample() {
     const disableAddLpIx = await pool.disableAddLpIx();
     const disableRemoveLpIx = await pool.disableRemoveLpIx();
     const disableSwapIx = await pool.disableSwapIx();
+    const updateSellTaxIx = await pool.updateSellTaxIx({
+        sellTax: new BN(30), // 30 BPS = 30 / 10000 * 100 = 0.3%
+    });
+    const updateBuyTaxIx = await pool.updateBuyTaxIx({
+        buyTax: new BN(30), // 30 BPS = 30 / 10000 * 100 = 0.3%
+    });
+    // You can lock the current buy and sell tax rates forever to ensure that they cannot be changed
+    const lockTaxationIx = await pool.lockTaxationIx();
 
     const currentLpLockTs = await pool.getCurrentLpLockTimestamp();
     const extendedLpLockTs = currentLpLockTs.getTime() + 60 * 60 * 1000; // extend the lock by 1 hour
@@ -610,8 +640,71 @@ export async function updateLiquidityPoolExample() {
             disableRemoveLpIx,
             disableSwapIx,
             extendLpLockIx,
-            updateOpenPoolAtIx
+            updateOpenPoolAtIx,
+            updateSellTaxIx,
+            updateBuyTaxIx,
+            lockTaxationIx
         ),
+        [payer],
+        {
+            commitment: 'confirmed',
+        }
+    );
+}
+```
+
+### Claim Swap Fee ([example](./examples/simple/claim-swap-fee.ts))
+```typescript
+/* eslint-disable max-len */
+/* eslint-disable no-mixed-spaces-and-tabs */
+import {
+    Connection,
+    Keypair,
+    PublicKey,
+    Transaction,
+    sendAndConfirmTransaction,
+} from '@solana/web3.js';
+import { Heaven } from 'heaven-sdk';
+
+export async function claimSwapFeeExample() {
+    const connection = new Connection(
+        'https://api.devnet.solana.com',
+        'confirmed'
+    );
+    const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
+    const payer = Keypair.generate();
+
+    // Load the pool
+    const pool = await Heaven.load({
+        id: liquidityPoolAddress,
+        network: 'devnet',
+        payer: payer.publicKey,
+        connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
+    });
+
+    const swapFees = await pool.swapFees;
+
+    const baseAmount = swapFees.base;
+    const quoteAmount = swapFees.quote;
+
+    // Claim all of the swap fees
+    const ix = await pool.claimSwapFeeIx({
+        baseAmount,
+        quoteAmount,
+    });
+
+    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+        console.log('Custom event:', event, poolId, instruction);
+    });
+
+    // Don't forget to unsubscribe from the custom event when you no longer need it
+    // await pool.unsubscribe(id);
+
+    await sendAndConfirmTransaction(
+        connection,
+        new Transaction().add(ix),
         [payer],
         {
             commitment: 'confirmed',

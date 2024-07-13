@@ -9,7 +9,7 @@ import {
 } from '@solana/web3.js';
 import { Heaven } from 'src';
 
-export async function claimTaxExample() {
+export async function claimSwapFeeExample() {
     const connection = new Connection(
         'https://api.devnet.solana.com',
         'confirmed'
@@ -27,16 +27,15 @@ export async function claimTaxExample() {
         // programId: new PublicKey('...'), // Insert the program ID
     });
 
-    // Get the current tax balances
-    const baseAmount = await pool.baseTaxBalance;
-    const quoteAmount = await pool.quoteTaxBalance;
+    const swapFees = await pool.swapFees;
 
-    // Claim all of the tax
-    const ix = await pool.claimTaxIx({
-        base: baseAmount,
-        quote: quoteAmount,
-        // [OPTIONAL]: The contract will emit this event when the tax is claimed
-        event: '',
+    const baseAmount = swapFees.base;
+    const quoteAmount = swapFees.quote;
+
+    // Claim all of the swap fees
+    const ix = await pool.claimSwapFeeIx({
+        baseAmount,
+        quoteAmount,
     });
 
     const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
