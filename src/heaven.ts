@@ -233,7 +233,7 @@ export class Heaven {
     protocolConfigVersion: number;
 
     makeClaimSwapTaxInstruction(
-        params: anchor.IdlTypes<HeavenAnchorAmm>['claimSwapTaxParams']
+        params: anchor.IdlTypes<HeavenAnchorAmm>['ClaimSwapTaxParams']
     ) {
         return this.program.methods
             .claimSwapTax(params)
@@ -243,7 +243,7 @@ export class Heaven {
     makeClaimProtocolSwapFeeInstruction(
         ownerBaseTokenSwapFeeVault: PublicKey,
         ownerQuoteTokenSwapFeeVault: PublicKey,
-        params: anchor.IdlTypes<HeavenAnchorAmm>['claimProtocolSwapFeeParams']
+        params: anchor.IdlTypes<HeavenAnchorAmm>['ClaimProtocolSwapFeeParams']
     ) {
         return this.program.methods
             .claimProtocolSwapFee(params)
@@ -255,7 +255,7 @@ export class Heaven {
     }
 
     makeClaimLpTokensInstruction(
-        params: anchor.IdlTypes<HeavenAnchorAmm>['claimLpTokensParams']
+        params: anchor.IdlTypes<HeavenAnchorAmm>['ClaimLpTokensParams']
     ) {
         return this.program.methods
             .claimLpTokens(params)
@@ -263,7 +263,7 @@ export class Heaven {
     }
 
     makeSwapInInstruction(
-        params: anchor.IdlTypes<HeavenAnchorAmm>['swapInParams']
+        params: anchor.IdlTypes<HeavenAnchorAmm>['SwapInParams']
     ) {
         return this.program.methods
             .swapIn(params)
@@ -283,7 +283,7 @@ export class Heaven {
     }
 
     makeUpdateLiquidityPoolInstruction(
-        params: anchor.IdlTypes<HeavenAnchorAmm>['updateLiquidityPoolParams']
+        params: anchor.IdlTypes<HeavenAnchorAmm>['UpdateLiquidityPoolParams']
     ) {
         return this.program.methods
             .updateLiquidityPool(params)
@@ -291,7 +291,7 @@ export class Heaven {
     }
 
     makeSwapOutInstruction(
-        params: anchor.IdlTypes<HeavenAnchorAmm>['swapOutParams']
+        params: anchor.IdlTypes<HeavenAnchorAmm>['SwapOutParams']
     ) {
         return this.program.methods
             .swapOut(params)
@@ -311,7 +311,7 @@ export class Heaven {
     }
 
     makeAddLiquidityInstruction(
-        params: anchor.IdlTypes<HeavenAnchorAmm>['addLiquidityParams']
+        params: anchor.IdlTypes<HeavenAnchorAmm>['AddLiquidityParams']
     ) {
         return this.program.methods
             .addLiquidity(params)
@@ -331,7 +331,7 @@ export class Heaven {
     }
 
     makeRemoveLiquidityInstruction(
-        params: anchor.IdlTypes<HeavenAnchorAmm>['removeLiquidityParams']
+        params: anchor.IdlTypes<HeavenAnchorAmm>['RemoveLiquidityParams']
     ) {
         return this.program.methods
             .removeLiquidity(params)
@@ -352,7 +352,7 @@ export class Heaven {
 
     makeCreateProtocolConfigInstruction(
         version: number,
-        params: anchor.IdlTypes<HeavenAnchorAmm>['protocolConfigParams']
+        params: anchor.IdlTypes<HeavenAnchorAmm>['ProtocolConfigParams']
     ) {
         return this.program.methods
             .createProtocolConfig(version, params)
@@ -367,7 +367,7 @@ export class Heaven {
 
     makeUpdateProtocolConfigInstruction(
         version: number,
-        params: anchor.IdlTypes<HeavenAnchorAmm>['protocolConfigParams']
+        params: anchor.IdlTypes<HeavenAnchorAmm>['ProtocolConfigParams']
     ) {
         return this.program.methods
             .updateProtocolConfig(version, params)
@@ -381,7 +381,7 @@ export class Heaven {
     }
 
     makeCreateLiquidityPoolInstruction(
-        params: anchor.IdlTypes<HeavenAnchorAmm>['createLiquidityPoolParams']
+        params: anchor.IdlTypes<HeavenAnchorAmm>['CreateLiquidityPoolParams']
     ) {
         return this.program.methods
             .createLiquidityPool(this.protocolConfigVersion, params)
@@ -590,7 +590,7 @@ export class Heaven {
             instruction: string
         ) => void
     ): number {
-        return this.program.addEventListener('userDefinedEvent', (event) => {
+        return this.program.addEventListener('UserDefinedEvent', (event) => {
             if (
                 !event.liquidityPoolId.equals(this.accounts.liquidityPoolState)
             ) {
@@ -617,7 +617,7 @@ export class Heaven {
             payer: PublicKey
         ) => void
     ) {
-        return this.program.addEventListener('addLiquidityEvent', (event) => {
+        return this.program.addEventListener('AddLiquidityEvent', (event) => {
             callback(
                 event.baseTokenInputAmount,
                 event.quoteTokenInputAmount,
@@ -638,7 +638,7 @@ export class Heaven {
         ) => void
     ) {
         return this.program.addEventListener(
-            'removeLiquidityEvent',
+            'RemoveLiquidityEvent',
             (event) => {
                 callback(
                     event.baseTokenAmount,
@@ -653,7 +653,7 @@ export class Heaven {
 
     subscribePoolUpdatedEvent(callback: (state: LiquidityPoolState) => void) {
         return this.program.addEventListener(
-            'updateLiquidityPoolEvent',
+            'UpdateLiquidityPoolEvent',
             async (event) => {
                 if (
                     !event.liquidityPoolId.equals(
@@ -681,7 +681,7 @@ export class Heaven {
             payer: PublicKey
         ) => void
     ) {
-        return this.program.addEventListener('swapOutEvent', (event) => {
+        return this.program.addEventListener('SwapOutEvent', (event) => {
             if (
                 !event.liquidityPoolId.equals(this.accounts.liquidityPoolState)
             ) {
@@ -708,7 +708,7 @@ export class Heaven {
             payer: PublicKey
         ) => void
     ) {
-        return this.program.addEventListener('swapInEvent', (event) => {
+        return this.program.addEventListener('SwapInEvent', (event) => {
             callback(
                 event.swapAmountIn,
                 event.swapAmountOut,
@@ -1458,24 +1458,10 @@ export class Heaven {
                 'confirmed'
             );
 
-        const provider = new anchor.AnchorProvider(
-            connection,
-            {
-                publicKey: params.owner,
-                signAllTransactions: async () => [],
-                signTransaction: async (transaction) => {
-                    return transaction;
-                },
-            },
-            {
-                commitment: 'confirmed',
-            }
-        );
+        const program = new Program<HeavenAnchorAmm>(IDL, programId, {
+            connection: connection,
+        });
 
-        const _IDL = { ...IDL } as HeavenAnchorAmm;
-        _IDL.address = programId.toBase58() as any;
-
-        const program = new Program<HeavenAnchorAmm>(_IDL, provider);
         return new Heaven({ ...params, program });
     }
 
@@ -1487,24 +1473,9 @@ export class Heaven {
         const _programId =
             programId ?? HeavenSupportedNetworkProgramId[network];
 
-        const provider = new anchor.AnchorProvider(
-            connection,
-            {
-                publicKey: NATIVE_MINT,
-                signAllTransactions: async () => [],
-                signTransaction: async (transaction) => {
-                    return transaction;
-                },
-            },
-            {
-                commitment: 'confirmed',
-            }
-        );
-
-        const _IDL = { ...IDL } as HeavenAnchorAmm;
-        _IDL.address = _programId.toBase58() as any;
-
-        const program = new Program<HeavenAnchorAmm>(_IDL, provider);
+        const program = new Program<HeavenAnchorAmm>(IDL, _programId, {
+            connection: connection,
+        });
 
         return program;
     }
@@ -1568,24 +1539,9 @@ export class Heaven {
                 'confirmed'
             );
 
-        const provider = new anchor.AnchorProvider(
-            connection,
-            {
-                publicKey: params.user,
-                signAllTransactions: async () => [],
-                signTransaction: async (transaction) => {
-                    return transaction;
-                },
-            },
-            {
-                commitment: 'confirmed',
-            }
-        );
-
-        const _IDL = { ...IDL } as HeavenAnchorAmm;
-        _IDL.address = programId.toBase58() as any;
-
-        const program = new Program<HeavenAnchorAmm>(_IDL, provider);
+        const program = new Program<HeavenAnchorAmm>(IDL, programId, {
+            connection: connection,
+        });
 
         const poolInfo = await program.account.liquidityPoolState.fetch(
             params.liquidityPoolId
