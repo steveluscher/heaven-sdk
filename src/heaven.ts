@@ -160,7 +160,7 @@ export const HeavenSupportedNetworkChainLinkFeed = {
         '99B2bTijsU6f1GCT73HmdR7HCFFjGMBcPZY6jZ96ynrR'
     ),
     [HeavenSupportedNetwork.localnet]: new PublicKey(
-        'CH31Xns5z3M1cTAbKW34jcxPPciazARpijcHj9rxtemt'
+        '99B2bTijsU6f1GCT73HmdR7HCFFjGMBcPZY6jZ96ynrR'
     ),
     [HeavenSupportedNetwork.mainnet]: new PublicKey(
         'CH31Xns5z3M1cTAbKW34jcxPPciazARpijcHj9rxtemt'
