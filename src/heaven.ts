@@ -1302,7 +1302,7 @@ export class Heaven {
     }
 
     async createIx(params: {
-        lp: 'burn' | 'lock';
+        lp: 'burn' | 'lock' | 'unlock';
         lockLiquidityUntil?: Date;
         openPoolAt: Date;
         baseAmount: BNType;
@@ -1340,6 +1340,12 @@ export class Heaven {
         if (params.lp === 'lock' && !params.lockLiquidityUntil) {
             throw new Error(
                 'lockLiquidityUntil is required when locking liquidity'
+            );
+        }
+
+        if (params.lp === 'unlock' && params.lockLiquidityUntil) {
+            throw new Error(
+                'lockLiquidityUntil cannot be set when lp = `unlock`'
             );
         }
 
@@ -1396,9 +1402,9 @@ export class Heaven {
         const ix = await this.makeCreateLiquidityPoolInstruction({
             burnLpTokens: params.lp === 'burn',
             lockLiquidityProviderTokenUntil: new anchor.BN(
-                Math.ceil(
-                    (params.lockLiquidityUntil ?? new Date()).getTime() / 1000
-                )
+                params.lockLiquidityUntil
+                    ? Math.ceil(params.lockLiquidityUntil.getTime() / 1000)
+                    : 0
             ),
             buyTax: params.buyTax,
             encodedUserDefinedEventData: params.event ?? '',
