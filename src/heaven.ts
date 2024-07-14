@@ -1301,6 +1301,14 @@ export class Heaven {
         return this.updateAllowRemoveLpIx({ allowRemoveLiquidity: true });
     }
 
+    get lpTokens(): Promise<BNType> {
+        return this.connection
+            .getTokenAccountBalance(this.accounts.userLpTokenVault)
+            .then((balance) => {
+                return new BN(balance.value.amount);
+            });
+    }
+
     async createIx(params: {
         lp: 'burn' | 'lock' | 'unlock';
         lockLiquidityUntil?: Date;
