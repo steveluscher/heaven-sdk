@@ -18,6 +18,7 @@ import {
     ExtensionType,
     MINT_SIZE,
     Mint,
+    NATIVE_MINT,
     TOKEN_2022_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
     createInitializeMintInstruction,
@@ -31,13 +32,7 @@ import {
 import Arweave from 'arweave';
 import { WebIrys } from '@irys/sdk';
 import IPFS from 'ipfs-only-hash';
-import {
-    percentAmount,
-    signerIdentity,
-    Signer as UmiSigner,
-    some,
-    UmiPlugin,
-} from '@metaplex-foundation/umi';
+import { percentAmount, some } from '@metaplex-foundation/umi';
 import { createFungible } from '@metaplex-foundation/mpl-token-metadata';
 import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 import { mplCandyMachine } from '@metaplex-foundation/mpl-candy-machine';
@@ -114,49 +109,61 @@ export const HeavenSupportedNetworkName = {
 
 export const HeavenSupportedNetworkProgramId = {
     [HeavenSupportedNetwork.localnet]: new PublicKey(
-        'BFbT2pvqgUFytCBNAWf1i5b2XjNfeEWLk661K1ADTABQ'
+        'HEAVEnMX7RoaYCucpyFterLWzFJR8Ah26oNSnqBs5Jtn'
     ),
     [HeavenSupportedNetwork.devnet]: new PublicKey(
-        'BFbT2pvqgUFytCBNAWf1i5b2XjNfeEWLk661K1ADTABQ'
+        'HEAVEnMX7RoaYCucpyFterLWzFJR8Ah26oNSnqBs5Jtn'
     ),
     [HeavenSupportedNetwork.testnet]: new PublicKey(
-        'BFbT2pvqgUFytCBNAWf1i5b2XjNfeEWLk661K1ADTABQ'
+        'HEAVEnMX7RoaYCucpyFterLWzFJR8Ah26oNSnqBs5Jtn'
     ),
     // TODO: Replace this with the correct mainnet program ID
     [HeavenSupportedNetwork.mainnet]: new PublicKey(
-        'BFbT2pvqgUFytCBNAWf1i5b2XjNfeEWLk661K1ADTABQ'
+        'HEAVEnMX7RoaYCucpyFterLWzFJR8Ah26oNSnqBs5Jtn'
     ),
 };
 
 export const HeavenSupportedNetworkPoolCreationFeeWallet = {
     [HeavenSupportedNetwork.localnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        'CYTDCTNLEaBFD5GLs6MyaoVh4nqozH2B4vNPWEBgNBsX'
     ),
     [HeavenSupportedNetwork.devnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        'CYTDCTNLEaBFD5GLs6MyaoVh4nqozH2B4vNPWEBgNBsX'
     ),
     [HeavenSupportedNetwork.testnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        'CYTDCTNLEaBFD5GLs6MyaoVh4nqozH2B4vNPWEBgNBsX'
     ),
     // TODO: Replace this with the correct mainnet program ID
     [HeavenSupportedNetwork.mainnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        'EwyiKUDFcQp8wCFMYjYYb933SzEPea4HwSDLsV6Mvyv6'
     ),
 };
 
 export const HeavenSupportedNetworkProtocolOwnerWallet = {
     [HeavenSupportedNetwork.localnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        '6GM1A5oYPLYn1c1sX1YmiUhWRP9yV5BgGaFTBf58XvdX'
     ),
     [HeavenSupportedNetwork.devnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        '6GM1A5oYPLYn1c1sX1YmiUhWRP9yV5BgGaFTBf58XvdX'
     ),
     [HeavenSupportedNetwork.testnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        '6GM1A5oYPLYn1c1sX1YmiUhWRP9yV5BgGaFTBf58XvdX'
     ),
     // TODO: Replace this with the correct mainnet program ID
     [HeavenSupportedNetwork.mainnet]: new PublicKey(
-        '5gCC5UQgKWDhCKjGGWUEpWBhUbrMpgpV9asUzRGrVRBm'
+        '4pzsDpf674wzgSdn5oRzGLBTd9gWgWoHqycMymg9hmPq'
+    ),
+};
+
+export const HeavenSupportedNetworkChainLinkFeed = {
+    [HeavenSupportedNetwork.devnet]: new PublicKey(
+        '99B2bTijsU6f1GCT73HmdR7HCFFjGMBcPZY6jZ96ynrR'
+    ),
+    [HeavenSupportedNetwork.localnet]: new PublicKey(
+        '99B2bTijsU6f1GCT73HmdR7HCFFjGMBcPZY6jZ96ynrR'
+    ),
+    [HeavenSupportedNetwork.mainnet]: new PublicKey(
+        'CH31Xns5z3M1cTAbKW34jcxPPciazARpijcHj9rxtemt'
     ),
 };
 
@@ -260,7 +267,19 @@ export class Heaven {
     ) {
         return this.program.methods
             .swapIn(params)
-            .accountsStrict(this.accounts);
+            .accountsStrict(this.accounts)
+            .remainingAccounts([
+                {
+                    pubkey: this.chainLinkFeed,
+                    isWritable: false,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkProgram,
+                    isWritable: false,
+                    isSigner: false,
+                },
+            ]);
     }
 
     makeUpdateLiquidityPoolInstruction(
@@ -276,7 +295,19 @@ export class Heaven {
     ) {
         return this.program.methods
             .swapOut(params)
-            .accountsStrict(this.accounts);
+            .accountsStrict(this.accounts)
+            .remainingAccounts([
+                {
+                    pubkey: this.chainLinkFeed,
+                    isWritable: false,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkProgram,
+                    isWritable: false,
+                    isSigner: false,
+                },
+            ]);
     }
 
     makeAddLiquidityInstruction(
@@ -284,7 +315,19 @@ export class Heaven {
     ) {
         return this.program.methods
             .addLiquidity(params)
-            .accountsStrict(this.accounts);
+            .accountsStrict(this.accounts)
+            .remainingAccounts([
+                {
+                    pubkey: this.chainLinkFeed,
+                    isWritable: false,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkProgram,
+                    isWritable: false,
+                    isSigner: false,
+                },
+            ]);
     }
 
     makeRemoveLiquidityInstruction(
@@ -292,7 +335,19 @@ export class Heaven {
     ) {
         return this.program.methods
             .removeLiquidity(params)
-            .accountsStrict(this.accounts);
+            .accountsStrict(this.accounts)
+            .remainingAccounts([
+                {
+                    pubkey: this.chainLinkFeed,
+                    isWritable: false,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkProgram,
+                    isWritable: false,
+                    isSigner: false,
+                },
+            ]);
     }
 
     makeCreateProtocolConfigInstruction(
@@ -315,7 +370,7 @@ export class Heaven {
         params: anchor.IdlTypes<HeavenAnchorAmm>['ProtocolConfigParams']
     ) {
         return this.program.methods
-            .updateProtocolConfig(params)
+            .updateProtocolConfig(version, params)
             .accountsStrict({
                 ...this.accounts,
                 protocolConfigState: Heaven.deriveProtocolConfigPda(
@@ -355,6 +410,16 @@ export class Heaven {
                 {
                     pubkey: this.accounts.userGlobalStats,
                     isWritable: true,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkFeed,
+                    isWritable: false,
+                    isSigner: false,
+                },
+                {
+                    pubkey: this.chainLinkProgram,
+                    isWritable: false,
                     isSigner: false,
                 },
             ]);
@@ -398,6 +463,7 @@ export class Heaven {
         quote: PublicKey;
         network: Network;
         connection: Connection;
+        programId?: PublicKey;
     }) {
         const baseTokenProgram = await Heaven.getTokenProgramFromMint(
             params.base,
@@ -428,6 +494,7 @@ export class Heaven {
             connection: params.connection,
             baseTokenMintDecimals: baseTokenMint.decimals,
             quoteTokenMintDecimals: quoteTokenMint.decimals,
+            programId: params.programId,
         });
     }
 
@@ -611,9 +678,7 @@ export class Heaven {
             amountOut: BNType,
             poolId: PublicKey,
             direction: SwapDirection,
-            payer: PublicKey,
-            baseBalance: BNType,
-            quoteBalance: BNType
+            payer: PublicKey
         ) => void
     ) {
         return this.program.addEventListener('SwapOutEvent', (event) => {
@@ -629,9 +694,7 @@ export class Heaven {
                 event.swapDirection.base2Quote
                     ? SwapDirection.Base2Quote
                     : SwapDirection.Quote2Base,
-                event.user,
-                event.baseTokenVaultBalance,
-                event.quoteTokenVaultBalance
+                event.user
             );
         });
     }
@@ -642,9 +705,7 @@ export class Heaven {
             amountOut: BNType,
             poolId: PublicKey,
             direction: SwapDirection,
-            payer: PublicKey,
-            baseBalance: BNType,
-            quoteBalance: BNType
+            payer: PublicKey
         ) => void
     ) {
         return this.program.addEventListener('SwapInEvent', (event) => {
@@ -655,11 +716,27 @@ export class Heaven {
                 event.swapDirection.base2Quote
                     ? SwapDirection.Base2Quote
                     : SwapDirection.Quote2Base,
-                event.user,
-                event.baseTokenVaultBalance,
-                event.quoteTokenVaultBalance
+                event.user
             );
         });
+    }
+
+    async claimSwapFeeIx(params: { baseAmount: BNType; quoteAmount: BNType }) {
+        if (params.baseAmount.eqn(0) && params.quoteAmount.eqn(0)) {
+            throw new Error('Both base and quote amounts are zero');
+        }
+
+        return this.program.methods
+            .claimSwapFee(params.baseAmount, params.quoteAmount)
+            .accountsStrict(this.accounts)
+            .instruction();
+    }
+
+    async lockTaxationIx() {
+        return this.program.methods
+            .lockLiquidityPoolTaxation()
+            .accountsStrict(this.accounts)
+            .instruction();
     }
 
     async addLpIx(params: {
@@ -1224,8 +1301,16 @@ export class Heaven {
         return this.updateAllowRemoveLpIx({ allowRemoveLiquidity: true });
     }
 
+    get lpTokens(): Promise<BNType> {
+        return this.connection
+            .getTokenAccountBalance(this.accounts.userLpTokenVault)
+            .then((balance) => {
+                return new BN(balance.value.amount);
+            });
+    }
+
     async createIx(params: {
-        lp: 'burn' | 'lock';
+        lp: 'burn' | 'lock' | 'unlock';
         lockLiquidityUntil?: Date;
         openPoolAt: Date;
         baseAmount: BNType;
@@ -1233,6 +1318,7 @@ export class Heaven {
         sellTax: BNType;
         buyTax: BNType;
         event?: string;
+        disableNonCreatorAddLiquidity?: boolean;
     }) {
         const eventSize = Buffer.from(params.event ?? '').length;
         if (eventSize > LOG_MESSAGES_BYTES_LIMIT) {
@@ -1262,6 +1348,12 @@ export class Heaven {
         if (params.lp === 'lock' && !params.lockLiquidityUntil) {
             throw new Error(
                 'lockLiquidityUntil is required when locking liquidity'
+            );
+        }
+
+        if (params.lp === 'unlock' && params.lockLiquidityUntil) {
+            throw new Error(
+                'lockLiquidityUntil cannot be set when lp = `unlock`'
             );
         }
 
@@ -1318,9 +1410,9 @@ export class Heaven {
         const ix = await this.makeCreateLiquidityPoolInstruction({
             burnLpTokens: params.lp === 'burn',
             lockLiquidityProviderTokenUntil: new anchor.BN(
-                Math.ceil(
-                    (params.lockLiquidityUntil ?? new Date()).getTime() / 1000
-                )
+                params.lockLiquidityUntil
+                    ? Math.ceil(params.lockLiquidityUntil.getTime() / 1000)
+                    : 0
             ),
             buyTax: params.buyTax,
             encodedUserDefinedEventData: params.event ?? '',
@@ -1336,6 +1428,9 @@ export class Heaven {
             sellTax: params.sellTax,
             inputBaseTokenAmount: params.baseAmount,
             inputQuoteTokenAmount: params.quoteAmount,
+            disableNonCreatorAddLiquidity:
+                params.disableNonCreatorAddLiquidity ?? false,
+            extras: [0, 0, 0, 0, 0, 0, 0, 0],
         }).instruction();
 
         return ix;
@@ -1364,21 +1459,38 @@ export class Heaven {
         connection?: Connection;
         baseTokenMintDecimals: number;
         quoteTokenMintDecimals: number;
+        programId?: PublicKey;
     }) {
-        return new Heaven(params);
-    }
+        const programId =
+            params.programId ?? HeavenSupportedNetworkProgramId[params.network];
 
-    static createProgram(network: HeavenSupportedNetwork) {
-        const programId = HeavenSupportedNetworkProgramId[network];
-
-        const connection = new Connection(
-            HeavenSupportedNetworkClusterApiUrl[network],
-            'confirmed'
-        );
+        const connection =
+            params.connection ??
+            new Connection(
+                params.clusterApiUrlOverride ??
+                    HeavenSupportedNetworkClusterApiUrl[params.network],
+                'confirmed'
+            );
 
         const program = new Program<HeavenAnchorAmm>(IDL, programId, {
-            connection,
+            connection: connection,
         });
+
+        return new Heaven({ ...params, program });
+    }
+
+    static createProgram(
+        network: HeavenSupportedNetwork,
+        connection?: Connection,
+        programId?: PublicKey
+    ) {
+        const _programId =
+            programId ?? HeavenSupportedNetworkProgramId[network];
+
+        const program = new Program<HeavenAnchorAmm>(IDL, _programId, {
+            connection: connection,
+        });
+
         return program;
     }
 
@@ -1387,11 +1499,14 @@ export class Heaven {
         network: Network;
         connection: Connection;
         id: PublicKey;
+        programId?: PublicKey;
     }) {
         return Heaven.initializeWithExistingPoolId({
             liquidityPoolId: params.id,
             network: NetworkFromString[params.network],
+            connection: params.connection,
             user: params.payer,
+            programId: params.programId,
         });
     }
 
@@ -1425,8 +1540,10 @@ export class Heaven {
         clusterApiUrlOverride?: string;
         liquidityPoolId: PublicKey;
         connection?: Connection;
+        programId?: PublicKey;
     }) {
-        const programId = HeavenSupportedNetworkProgramId[params.network];
+        const programId =
+            params.programId ?? HeavenSupportedNetworkProgramId[params.network];
 
         const connection =
             params.connection ??
@@ -1437,7 +1554,7 @@ export class Heaven {
             );
 
         const program = new Program<HeavenAnchorAmm>(IDL, programId, {
-            connection,
+            connection: connection,
         });
 
         const poolInfo = await program.account.liquidityPoolState.fetch(
@@ -1471,6 +1588,8 @@ export class Heaven {
             connection,
             baseTokenMintDecimals: poolInfo.baseTokenMintDecimals,
             quoteTokenMintDecimals: poolInfo.quoteTokenMintDecimals,
+            state: poolInfo,
+            program,
         });
     }
 
@@ -1488,8 +1607,11 @@ export class Heaven {
             connection?: Connection;
             baseTokenMintDecimals: number;
             quoteTokenMintDecimals: number;
+            state?: LiquidityPoolState;
+            program: anchor.Program<HeavenAnchorAmm>;
         }
     ) {
+        this._state = params.state;
         this.baseTokenMintDecimals = params.baseTokenMintDecimals;
         this.quoteTokenMintDecimals = params.quoteTokenMintDecimals;
         this.lpTokenMintDecimals =
@@ -1506,9 +1628,7 @@ export class Heaven {
                     HeavenSupportedNetworkClusterApiUrl[this.network],
                 'confirmed'
             );
-        this.program = new Program<HeavenAnchorAmm>(IDL, this.programId, {
-            connection: this.connection,
-        });
+        this.program = params.program;
         this._authority = Heaven.deriveAuthorityPda(this.programId);
         this._baseTokenProgram =
             HeavenSupportedTokenProgramId[this.params.baseTokenProgram];
@@ -1635,6 +1755,19 @@ export class Heaven {
         };
     }
 
+    _state?: LiquidityPoolState;
+    get state(): Promise<LiquidityPoolState> {
+        if (this._state) {
+            return Promise.resolve(this._state);
+        }
+        return this.program.account.liquidityPoolState
+            .fetch(this.accounts.liquidityPoolState)
+            .then((state) => {
+                this._state = state;
+                return state;
+            });
+    }
+
     poolCreationFeeWallet: PublicKey;
     protocolOwnerWallet: PublicKey;
 
@@ -1657,6 +1790,13 @@ export class Heaven {
     get lpTokenLockVaultBump(): number {
         return this._lpTokenLockVault[1];
     }
+
+    get chainLinkFeed(): PublicKey {
+        return HeavenSupportedNetworkChainLinkFeed[this.network];
+    }
+    chainLinkProgram: PublicKey = new PublicKey(
+        'HEvSKofvBgfaexv23kMabbYqxasxU3mQ4ibBMEmJWHny'
+    );
 
     _baseTokenProgram: PublicKey;
     get baseTokenProgram(): PublicKey {
@@ -1781,6 +1921,24 @@ export class Heaven {
     }
     get userGlobalStatsBump(): number {
         return this._userGlobalStats[1];
+    }
+
+    get swapFees(): Promise<{ base: BNType; quote: BNType }> {
+        return this.currentState.then((currState) => {
+            return {
+                base: currState.swapBaseFee,
+                quote: currState.swapQuoteFee,
+            };
+        });
+    }
+
+    get currentState() {
+        return this.program.account.liquidityPoolState
+            .fetch(this.accounts.liquidityPoolState, 'confirmed')
+            .then((state) => {
+                this._state = state;
+                return state;
+            });
     }
 
     static deriveAuthorityPda(programId: PublicKey) {
@@ -2007,7 +2165,7 @@ export class Heaven {
                 mint, // mint pubkey
                 params.decimals, // decimals
                 params.payer, // mint authority
-                params.payer // freeze authority (you can use `null` to disable it. when you disable it, you can't turn it on again)
+                null // freeze authority (you can use `null` to disable it. when you disable it, you can't turn it on again)
             )
         );
         return tx;

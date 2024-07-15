@@ -24,6 +24,8 @@ export async function swapExactInExample() {
         network: 'devnet',
         payer: payer.publicKey,
         connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     // Swapping in 1000 base tokens for quote tokens

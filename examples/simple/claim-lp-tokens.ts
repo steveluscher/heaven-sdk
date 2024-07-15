@@ -23,6 +23,8 @@ export async function claimLpTokensExample() {
         network: 'devnet',
         payer: payer.publicKey,
         connection,
+        // Optional: If you want to use a custom program ID
+        // programId: new PublicKey('...'), // Insert the program ID
     });
 
     // Get the current locked lp token account balance
