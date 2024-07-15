@@ -95,620 +95,482 @@ module.exports = {
 };
 ```
 
-### Create a new pool ([example](./examples/simple/create-new-pool.ts))
+# Quick Start
 
-```typescript
-/* eslint-disable max-len */
-import {
-    ComputeBudgetProgram,
-    Connection,
-    Keypair,
-    PublicKey,
-    Transaction,
-    sendAndConfirmTransaction,
-} from '@solana/web3.js';
-import { BN } from 'bn.js';
-import { Heaven } from 'heaven-sdk';
-
-export async function createLiquidityPoolExample() {
-    const creator = Keypair.generate();
-    const connection = new Connection(
-        'https://api.devnet.solana.com/', // Replace with your preferred Solana RPC endpoint
-        'confirmed'
-    );
-
-    // Initialize a new liquidity pool
-    const pool = await Heaven.new({
-        base: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'), // USDC;
-        quote: new PublicKey('So11111111111111111111111111111111111111112'), // WSOL;
-        connection: connection,
-        payer: creator.publicKey,
-        network: 'devnet', // 'mainnet' or 'testnet',
-        // Optional: If you want to use a custom program ID
-        // programId: new PublicKey('...'), // Insert the program ID
-    });
-
-    const ix = await pool.createIx({
-        // amount of base token to deposit
-        baseAmount: new BN(1000_000 * 10 ** pool.baseTokenMintDecimals),
-        // amount of quote token to deposit
-        quoteAmount: new BN(1000 * 10 ** pool.quoteTokenMintDecimals),
-        // sellTax BPS = 100 / 10000 * 100 = 1%;
-        sellTax: new BN(100),
-        // buyTax BPS = 25 / 10000 * 100 = 0.25%;
-        buyTax: new BN(25),
-        // locking liquidity
-        lp: 'lock', // or 'burn' to burn LP tokens
-        // Lock liquidity for 60 seconds
-        lockLiquidityUntil: new Date(new Date().getTime() + 60 * 1000),
-        // Open pool 60 seconds after creation
-        openPoolAt: new Date(new Date().getTime() + 60 * 1000),
-        // [OPTIONAL]: The contract will emit this event when the pool is created
-        event: '',
-        // [OPTIONAL]: Only allow pool creatot to add additional liquidity.
-        // Default is `false`.
-        // Important: This cannot be changed after pool creation.
-        // Setting this to `true` will only allow the pool creator to collect swap fees without pulling
-        // all the liquidity from the pool.
-        disableNonCreatorAddLiquidity: true,
-    });
-
-    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
-        console.log('Custom event:', event, poolId, instruction);
-    });
-
-    // Don't forget to unsubscribe from the custom event when you no longer need it
-    // await pool.unsubscribe(id);
-
-    await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(
-            ComputeBudgetProgram.setComputeUnitLimit({
-                units: 300000,
-            }),
-            ix
-        ),
-        [creator],
-        {
-            commitment: 'confirmed',
-        }
-    );
-}
+## Install Dependencies
+```bash
+npm i @solana/web3.js @solana/spl-token bn.js heaven-sdk
 ```
 
-### Swap exact in ([example](./examples/simple/swap-exact-in.ts))
+## Setup
 
+#### 1. Import Dependencies
 ```typescript
-/* eslint-disable max-len */
-/* eslint-disable no-mixed-spaces-and-tabs */
 import {
-    Connection,
-    Keypair,
-    PublicKey,
-    Transaction,
-    sendAndConfirmTransaction,
-} from '@solana/web3.js';
-import { BN } from 'bn.js';
-import { Heaven } from 'heaven-sdk';
-
-export async function swapExactInExample() {
-    const connection = new Connection(
-        'https://api.devnet.solana.com',
-        'confirmed'
-    );
-    const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const payer = Keypair.generate();
-
-    // Load an existing pool by id
-    const pool = await Heaven.load({
-        id: liquidityPoolAddress,
-        network: 'devnet', // 'mainnet' or 'testnet'
-        payer: payer.publicKey,
-        connection,
-        // Optional: If you want to use a custom program ID
-        // programId: new PublicKey('...'), // Insert the program ID
-    });
-
-    // Swapping in 1000 base tokens for quote tokens
-    const amount = new BN(1000 * 10 ** pool.baseTokenMintDecimals);
-
-    // Slippage BPS => 100 = 1% = 100 / 10000 * 100
-    const slippage = new BN(100);
-
-    // Quote the minimum amount of quote tokens that will be received
-    // based on the provided slippage
-    const quoteResult = await pool.quoteSwapIn({
-        amount,
-        inputSide: 'base',
-        slippage,
-    });
-
-    const ix = await pool.swapInIx({
-        amount,
-        quoteResult,
-        // [OPTIONAL]: The contract will emit this event when the swap is executed
-        event: '',
-    });
-
-    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
-        console.log('Custom event:', event, poolId, instruction);
-    });
-
-    // Don't forget to unsubscribe from the custom event when you no longer need it
-    // await pool.unsubscribe(id);
-
-    await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(ix),
-        [payer],
-        {
-            commitment: 'confirmed',
-        }
-    );
-}
+ ComputeBudgetProgram,
+ Connection,
+ Keypair,
+ LAMPORTS_PER_SOL,
+ PublicKey,
+ SystemProgram,
+ Transaction,
+ sendAndConfirmTransaction,
+} from "@solana/web3.js";
+import { BN } from "bn.js";
+import { Heaven } from "heaven-sdk";
+import {
+ AuthorityType,
+ createAssociatedTokenAccountInstruction,
+ createInitializeMintInstruction,
+ createMintToCheckedInstruction,
+ createSetAuthorityInstruction,
+ createSyncNativeInstruction,
+ getAssociatedTokenAddressSync,
+ getMinimumBalanceForRentExemptMint,
+ MINT_SIZE,
+ NATIVE_MINT,
+ TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 ```
 
-### Swap exact out ([example](./examples/simple/swap-exact-out.ts))
-
+#### 2. Create a wallet
 ```typescript
-/* eslint-disable max-len */
-/* eslint-disable no-mixed-spaces-and-tabs */
-import {
-    Connection,
-    Keypair,
-    PublicKey,
-    Transaction,
-    sendAndConfirmTransaction,
-} from '@solana/web3.js';
-import { BN } from 'bn.js';
-import { Heaven } from 'heaven-sdk';
-
-export async function swapExactOutExample() {
-    const connection = new Connection(
-        'https://api.devnet.solana.com',
-        'confirmed'
-    );
-    const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const payer = Keypair.generate();
-
-    // Load the pool
-    const pool = await Heaven.load({
-        id: liquidityPoolAddress,
-        network: 'devnet', // 'mainnet' or 'testnet'
-        payer: payer.publicKey,
-        connection,
-        // Optional: If you want to use a custom program ID
-        // programId: new PublicKey('...'), // Insert the program ID
-    });
-
-    // Swapping out 1000 base tokens using quote tokens
-    const amountOut = new BN(1000 * 10 ** pool.baseTokenMintDecimals);
-
-    // Slippage BPS => 100 = 1% = 100 / 10000 * 100
-    const slippage = new BN(100);
-
-    // Quote the maximum amount of quote tokens that will be spent
-    // based on the provided slippage
-    const quoteResult = await pool.quoteSwapOut({
-        amount: amountOut,
-        inputSide: 'quote',
-        slippage,
-    });
-
-    const ix = await pool.swapOutIx({
-        amount: amountOut,
-        quoteResult,
-        // [OPTIONAL]: The contract will emit this event when the swap is executed
-        event: '',
-    });
-
-    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
-        console.log('Custom event:', event, poolId, instruction);
-    });
-
-    // Don't forget to unsubscribe from the custom event when you no longer need it
-    // await pool.unsubscribe(id);
-
-    await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(ix),
-        [payer],
-        {
-            commitment: 'confirmed',
-        }
-    );
-}
+const creator = Keypair.generate();
 ```
 
-### Add liquidity ([example](./examples/simple/add-liquidity.ts))
-
+#### 3. Create an RPC connection
 ```typescript
-/* eslint-disable max-len */
-/* eslint-disable no-mixed-spaces-and-tabs */
-import {
-    Connection,
-    Keypair,
-    PublicKey,
-    Transaction,
-    sendAndConfirmTransaction,
-} from '@solana/web3.js';
-import { BN } from 'bn.js';
-import { Heaven } from 'heaven-sdk';
-
-export async function addLpExample() {
-    const connection = new Connection(
-        'https://api.devnet.solana.com',
-        'confirmed'
-    );
-    const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const payer = Keypair.generate();
-
-    // Load the pool
-    const pool = await Heaven.load({
-        id: liquidityPoolAddress,
-        network: 'devnet', // 'mainnet' or 'testnet'
-        payer: payer.publicKey,
-        connection,
-        // Optional: If you want to use a custom program ID
-        // programId: new PublicKey('...'), // Insert the program ID
-    });
-
-    // Adding 1000 base tokens
-    const baseAmount = new BN(1000 * 10 ** pool.baseTokenMintDecimals);
-
-    // Calculate the maximum amount of quote tokens that needs to be added as well
-    // based on the provided slippage
-    const quoteResult = await pool.quoteAddLp({
-        inputSide: 'base',
-        amount: baseAmount,
-        // Slippage BPS => 100 = 1% = 100 / 10000 * 100
-        slippage: new BN(100),
-    });
-
-    const ix = await pool.addLpIx({
-        quoteResult,
-        // [OPTIONAL]: The contract will emit this event when the liquidity is added
-        event: '',
-    });
-
-    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
-        console.log('Custom event:', event, poolId, instruction);
-    });
-
-    // Don't forget to unsubscribe from the custom event when you no longer need it
-    // await pool.unsubscribe(id);
-
-    await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(ix),
-        [payer],
-        {
-            commitment: 'confirmed',
-        }
-    );
-}
+const connection = new Connection(
+ // Replace with your preferred Solana RPC endpoint
+ "https://api.devnet.solana.com", 
+ "confirmed"
+);
 ```
 
-### Remove liquidity ([example](./examples/simple/remove-liquidity.ts))
-
+#### 4. Request Airdrop
 ```typescript
-/* eslint-disable max-len */
-/* eslint-disable no-mixed-spaces-and-tabs */
-import {
-    Connection,
-    Keypair,
-    PublicKey,
-    Transaction,
-    sendAndConfirmTransaction,
-} from '@solana/web3.js';
-import { BN } from 'bn.js';
-import { Heaven } from 'heaven-sdk';
-
-export async function removeLpExample() {
-    const connection = new Connection(
-        'https://api.devnet.solana.com',
-        'confirmed'
-    );
-    const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const payer = Keypair.generate();
-
-    // Load the pool
-    const pool = await Heaven.load({
-        id: liquidityPoolAddress,
-        network: 'devnet', // 'mainnet' or 'testnet'
-        payer: payer.publicKey,
-        connection,
-        // Optional: If you want to use a custom program ID
-        // programId: new PublicKey('...'), // Insert the program ID
-    });
-
-    // Remove 1000 lp tokens
-    const lpAmount = new BN(1000 * 10 ** pool.lpTokenMintDecimals);
-
-    // Calculate the minimum amount of base and quote tokens that will be received
-    // based on the provided slippage
-    const quoteResult = await pool.quoteRemoveLp({
-        amount: lpAmount,
-        // Slippage BPS => 100 = 1% = 100 / 10000 * 100
-        slippage: new BN(100),
-    });
-
-    const ix = await pool.removeLpIx({
-        quoteResult,
-        // [OPTIONAL]: The contract will emit this event when the liquidity is removed
-        event: '',
-    });
-
-    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
-        console.log('Custom event:', event, poolId, instruction);
-    });
-
-    // Don't forget to unsubscribe from the custom event when you no longer need it
-    // await pool.unsubscribe(id);
-
-    await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(ix),
-        [payer],
-        {
-            commitment: 'confirmed',
-        }
-    );
-}
+const signature = await connection.requestAirdrop(
+ creator.publicKey,
+ 3 * LAMPORTS_PER_SOL
+);
+await connection.confirmTransaction(signature);
 ```
 
-### Claim Swap Tax ([example](./examples/simple/claim-tax.ts))
-
+## Create a Token
 ```typescript
-/* eslint-disable max-len */
-/* eslint-disable no-mixed-spaces-and-tabs */
-import {
-    Connection,
-    Keypair,
-    PublicKey,
-    Transaction,
-    sendAndConfirmTransaction,
-} from '@solana/web3.js';
-import { Heaven } from 'heaven-sdk';
+const mint = Keypair.generate();
+const decimals = 9;
+const amount = 1000_000_000 * 10 ** decimals; // Mint 1 Billion tokens
 
-export async function claimTaxExample() {
-    const connection = new Connection(
-        'https://api.devnet.solana.com',
-        'confirmed'
-    );
-    const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const payer = Keypair.generate();
+const tokenAccount = getAssociatedTokenAddressSync(
+ mint.publicKey,
+ creator.publicKey,
+ false,
+ TOKEN_PROGRAM_ID
+);
 
-    // Load the pool
-    const pool = await Heaven.load({
-        id: liquidityPoolAddress,
-        network: 'devnet', // 'mainnet' or 'testnet'
-        payer: payer.publicKey,
-        connection,
-        // Optional: If you want to use a custom program ID
-        // programId: new PublicKey('...'), // Insert the program ID
-    });
+const tx = new Transaction().add(
+ // Create mint account
+ SystemProgram.createAccount({
+  fromPubkey: creator.publicKey,
+  newAccountPubkey: mint.publicKey,
+  space: MINT_SIZE,
+  lamports: await getMinimumBalanceForRentExemptMint(connection),
+  programId: TOKEN_PROGRAM_ID,
+ }),
+ // Create a new token
+ createInitializeMintInstruction(
+  mint.publicKey, // mint pubkey
+  decimals, // decimals
+  creator.publicKey, // mint authority
+  null // freeze authority (you can use `null` to disable it. when you disable it, you can't turn it on again)
+ ),
+ // Create a new token account to receive the minted tokens
+ createAssociatedTokenAccountInstruction(
+  creator.publicKey, // payer
+  tokenAccount, // ata
+  creator.publicKey, // owner
+  mint.publicKey // mint
+ ),
+ // Mint tokens to the token account
+ createMintToCheckedInstruction(
+  mint.publicKey, // mint
+  tokenAccount, // receiver (should be a token account)
+  creator.publicKey, // mint authority
+  amount, // amount. if your decimals is 8, you mint 10^8 for 1 token.
+  decimals // decimals
+ ),
+ // Optionally, revoke the mint authority
+ createSetAuthorityInstruction(
+  mint.publicKey, // mint acocunt || token account
+  creator.publicKey, // current auth
+  AuthorityType.MintTokens, // authority type
+  null // new auth (you can pass `null` to close it)
+ )
+);
 
-    // Get the current tax balances
-    const baseAmount = await pool.baseTaxBalance;
-    const quoteAmount = await pool.quoteTaxBalance;
-
-    // Claim all of the tax
-    const ix = await pool.claimTaxIx({
-        base: baseAmount,
-        quote: quoteAmount,
-        // [OPTIONAL]: The contract will emit this event when the tax is claimed
-        event: '',
-    });
-
-    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
-        console.log('Custom event:', event, poolId, instruction);
-    });
-
-    // Don't forget to unsubscribe from the custom event when you no longer need it
-    // await pool.unsubscribe(id);
-
-    await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(ix),
-        [payer],
-        {
-            commitment: 'confirmed',
-        }
-    );
-}
+await sendAndConfirmTransaction(connection, tx, [creator, mint], {
+ commitment: "confirmed",
+});
 ```
 
-### Claim Lp Tokens ([example](./examples/simple/claim-lp-tokens.ts))
-
+## Prepare WSOL
 ```typescript
-/* eslint-disable max-len */
-/* eslint-disable no-mixed-spaces-and-tabs */
-import {
-    Connection,
-    Keypair,
-    PublicKey,
-    Transaction,
-    sendAndConfirmTransaction,
-} from '@solana/web3.js';
-import { Heaven } from 'heaven-sdk';
+const wsolTokenAccount = getAssociatedTokenAddressSync(
+ NATIVE_MINT,
+ creator.publicKey,
+ false,
+ TOKEN_PROGRAM_ID
+);
 
-export async function claimLpTokensExample() {
-    const connection = new Connection(
-        'https://api.devnet.solana.com',
-        'confirmed'
-    );
-    const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const payer = Keypair.generate();
-
-    // Load the pool
-    const pool = await Heaven.load({
-        id: liquidityPoolAddress,
-        network: 'devnet', // 'mainnet' or 'testnet'
-        payer: payer.publicKey,
-        connection,
-        // Optional: If you want to use a custom program ID
-        // programId: new PublicKey('...'), // Insert the program ID
-    });
-
-    // Get the current locked lp token account balance
-    const amount = await pool.lockedLpTokenBalance;
-
-    // Claim all of the locked lp tokens
-    const ix = await pool.claimLpTokensIx({
-        amount,
-    });
-
-    await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(ix),
-        [payer],
-        {
-            commitment: 'confirmed',
-        }
-    );
-}
+const tx2 = new Transaction().add(
+ createAssociatedTokenAccountInstruction(
+  creator.publicKey,
+  wsolTokenAccount,
+  creator.publicKey,
+  NATIVE_MINT
+ ),
+ SystemProgram.transfer({
+  fromPubkey: creator.publicKey,
+  toPubkey: wsolTokenAccount,
+  lamports: 2 * LAMPORTS_PER_SOL,
+ }),
+ createSyncNativeInstruction(wsolTokenAccount, TOKEN_PROGRAM_ID)
+);
+await sendAndConfirmTransaction(connection, tx2, [creator], {
+ commitment: "confirmed",
+});
 ```
 
-### Update Liquidity Pool ([example](./examples/simple/update-liquidity-pool.ts))
-
+## Create a Pool
 ```typescript
-/* eslint-disable max-len */
-/* eslint-disable no-mixed-spaces-and-tabs */
-import {
-    Connection,
-    Keypair,
-    PublicKey,
-    Transaction,
-    sendAndConfirmTransaction,
-} from '@solana/web3.js';
-import { Heaven } from 'heaven-sdk';
+// Initialize a new liquidity pool
+const pool = await Heaven.new({
+ base: mint.publicKey, // The token we created;
+ quote: NATIVE_MINT, // WSOL;
+ connection: connection,
+ payer: creator.publicKey,
+ network: "devnet",
+ // Optional: If you want to use a custom program ID
+ // programId: new PublicKey('...'), // Insert the program ID
+});
 
-export async function updateLiquidityPoolExample() {
-    const connection = new Connection(
-        'https://api.devnet.solana.com',
-        'confirmed'
-    );
-    const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const payer = Keypair.generate();
+// This will create a new liquidity pool with the following parameters:
+// - 1 SOL
+// - 1000,000 of the token we created
+// - 1% sell tax -> Swapping from base to quote token
+// - 0.25% buy tax -> Swapping from quote to base token
+// - Lock liquidity for 60 seconds
+// - Open pool 5 seconds after creation
+// - And only allowing pool creator to add additional liquidity
+const ix = await pool.createIx({
+ // amount of base token to deposit
+ baseAmount: new BN(1000_000 * 10 ** pool.baseTokenMintDecimals),
+ // amount of quote token to deposit
+ quoteAmount: new BN(1 * 10 ** pool.quoteTokenMintDecimals),
+ // sellTax BPS = 100 / 10000 * 100 = 1%;
+ sellTax: new BN(100),
+ // buyTax BPS = 25 / 10000 * 100 = 0.25%;
+ buyTax: new BN(25),
+ // locking liquidity
+ lp: "lock", // or 'burn' to burn LP tokens
+ // Lock liquidity for 60 seconds
+ lockLiquidityUntil: new Date(new Date().getTime() + 60 * 1000),
+ // Open pool 5 seconds after creation
+ openPoolAt: new Date(new Date().getTime() + 5 * 1000),
+ // [OPTIONAL]: The contract will emit this event when the pool is created
+ event: "",
+ // [OPTIONAL]: Only allow pool creatot to add additional liquidity.
+ // Default is `false`.
+ // Important: This cannot be changed after pool creation.
+ // Setting this to `true` will only allow the pool creator to collect swap fees without pulling
+ // all the liquidity from the pool.
+ disableNonCreatorAddLiquidity: true,
+});
 
-    // Load the pool
-    const pool = await Heaven.load({
-        id: liquidityPoolAddress,
-        network: 'devnet', // 'mainnet' or 'testnet'
-        payer: payer.publicKey,
-        connection,
-        // Optional: If you want to use a custom program ID
-        // programId: new PublicKey('...'), // Insert the program ID
-    });
+const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+ console.log("Custom event:", event, poolId, instruction);
+});
 
-    const enableAddLpIx = await pool.enableAddLpIx();
-    const enableRemoveLpIx = await pool.enableRemoveLpIx();
-    const enableSwapIx = await pool.enableSwapIx();
-    const disableAddLpIx = await pool.disableAddLpIx();
-    const disableRemoveLpIx = await pool.disableRemoveLpIx();
-    const disableSwapIx = await pool.disableSwapIx();
-    const updateSellTaxIx = await pool.updateSellTaxIx({
-        sellTax: new BN(30), // 30 BPS = 30 / 10000 * 100 = 0.3%
-    });
-    const updateBuyTaxIx = await pool.updateBuyTaxIx({
-        buyTax: new BN(30), // 30 BPS = 30 / 10000 * 100 = 0.3%
-    });
-    // You can lock the current buy and sell tax rates forever to ensure that they cannot be changed
-    const lockTaxationIx = await pool.lockTaxationIx();
+// Don't forget to unsubscribe from the custom event when you no longer need it
+await pool.unsubscribe(id);
 
-    const currentLpLockTs = await pool.getCurrentLpLockTimestamp();
-    const extendedLpLockTs = currentLpLockTs.getTime() + 60 * 60 * 1000; // extend the lock by 1 hour
-
-    // Note: you can only extend lp lock, not shorten it
-    const extendLpLockIx = await pool.extendLpLockIx({
-        lockLiquidityUntil: new Date(extendedLpLockTs),
-    });
-
-    // Note: you can only update the open pool at timestamp if the previous open pool at timestamp has not passed
-    const updateOpenPoolAtIx = await pool.updateOpenPoolAtIx({
-        openPoolAt: new Date(Date.now() + 60 * 60 * 1000), // open the pool in 1 hour from now
-    });
-
-    await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(
-            enableAddLpIx,
-            enableRemoveLpIx,
-            enableSwapIx,
-            disableAddLpIx,
-            disableRemoveLpIx,
-            disableSwapIx,
-            extendLpLockIx,
-            updateOpenPoolAtIx,
-            updateSellTaxIx,
-            updateBuyTaxIx,
-            lockTaxationIx
-        ),
-        [payer],
-        {
-            commitment: 'confirmed',
-        }
-    );
-}
+const createPoolTx = await sendAndConfirmTransaction(
+ connection,
+ new Transaction().add(
+  // Creating a new pool uses more than the default 200K compute units
+  // so we need to increase the compute unit limit
+  // to avoid the transaction failing with an error
+  ComputeBudgetProgram.setComputeUnitLimit({
+   units: 300000,
+  }),
+  ix
+ ),
+ [creator],
+ {
+  commitment: "confirmed",
+ }
+);
 ```
 
-### Claim Swap Fee ([example](./examples/simple/claim-swap-fee.ts))
+## Swap
 ```typescript
-/* eslint-disable max-len */
-/* eslint-disable no-mixed-spaces-and-tabs */
-import {
-    Connection,
-    Keypair,
-    PublicKey,
-    Transaction,
-    sendAndConfirmTransaction,
-} from '@solana/web3.js';
-import { Heaven } from 'heaven-sdk';
+console.log("Waiting for the pool to open...");
+await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
 
-export async function claimSwapFeeExample() {
-    const connection = new Connection(
-        'https://api.devnet.solana.com',
-        'confirmed'
-    );
-    const liquidityPoolAddress = new PublicKey('...'); // Insert the liquidity pool address
-    const payer = Keypair.generate();
+console.log("Swapping 0.01 SOL for as much tokens as possible...");
+const swapInAmount = new BN(0.01 * 10 ** pool.quoteTokenMintDecimals);
+const swapInQuote = await pool.quoteSwapIn({
+ amount: swapInAmount,
+ inputSide: "quote",
+ slippage: new BN(100), // 1%
+});
 
-    // Load the pool
-    const pool = await Heaven.load({
-        id: liquidityPoolAddress,
-        network: 'devnet',
-        payer: payer.publicKey,
-        connection,
-        // Optional: If you want to use a custom program ID
-        // programId: new PublicKey('...'), // Insert the program ID
-    });
+console.log("Quote ", swapInQuote);
 
-    const swapFees = await pool.swapFees;
+const swapInIx = await pool.swapInIx({
+ quoteResult: swapInQuote,
+ amount: swapInAmount,
+});
 
-    const baseAmount = swapFees.base;
-    const quoteAmount = swapFees.quote;
+const swapInTx = await sendAndConfirmTransaction(
+ connection,
+ new Transaction().add(swapInIx),
+ [creator],
+ {
+  commitment: "confirmed",
+ }
+);
 
-    // Claim all of the swap fees
-    const ix = await pool.claimSwapFeeIx({
-        baseAmount,
-        quoteAmount,
-    });
-
-    const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
-        console.log('Custom event:', event, poolId, instruction);
-    });
-
-    // Don't forget to unsubscribe from the custom event when you no longer need it
-    // await pool.unsubscribe(id);
-
-    await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(ix),
-        [payer],
-        {
-            commitment: 'confirmed',
-        }
-    );
-}
+console.log("Swap in transaction confirmed!", swapInTx);
 ```
+
+## Full Code Example ([source](https://github.com/heavenxyz/heaven-sdk-examples/blob/master/src/create-pool.mjs))
+```typescript create-pool.mjs
+import {
+ ComputeBudgetProgram,
+ Connection,
+ Keypair,
+ LAMPORTS_PER_SOL,
+ PublicKey,
+ SystemProgram,
+ Transaction,
+ sendAndConfirmTransaction,
+} from "@solana/web3.js";
+import { BN } from "bn.js";
+import { Heaven } from "heaven-sdk";
+import {
+ AuthorityType,
+ createAssociatedTokenAccountInstruction,
+ createInitializeMintInstruction,
+ createMintToCheckedInstruction,
+ createSetAuthorityInstruction,
+ createSyncNativeInstruction,
+ getAssociatedTokenAddressSync,
+ getMinimumBalanceForRentExemptMint,
+ MINT_SIZE,
+ NATIVE_MINT,
+ TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+
+console.log("Creating a new liquidity pool...");
+const creator = Keypair.generate();
+const connection = new Connection(
+ "https://api.devnet.solana.com", // Replace with your preferred Solana RPC endpoint
+ "confirmed"
+);
+
+const signature = await connection.requestAirdrop(
+ creator.publicKey,
+ 3 * LAMPORTS_PER_SOL
+);
+await connection.confirmTransaction(signature);
+
+const mint = Keypair.generate();
+const decimals = 9;
+const amount = 1000_000_000 * 10 ** decimals; // Mint 1 Billion tokens
+
+const tokenAccount = getAssociatedTokenAddressSync(
+ mint.publicKey,
+ creator.publicKey,
+ false,
+ TOKEN_PROGRAM_ID
+);
+
+const tx = new Transaction().add(
+ // Create mint account
+ SystemProgram.createAccount({
+  fromPubkey: creator.publicKey,
+  newAccountPubkey: mint.publicKey,
+  space: MINT_SIZE,
+  lamports: await getMinimumBalanceForRentExemptMint(connection),
+  programId: TOKEN_PROGRAM_ID,
+ }),
+ // Create a new token
+ createInitializeMintInstruction(
+  mint.publicKey, // mint pubkey
+  decimals, // decimals
+  creator.publicKey, // mint authority
+  null // freeze authority (you can use `null` to disable it. when you disable it, you can't turn it on again)
+ ),
+ // Create a new token account to receive the minted tokens
+ createAssociatedTokenAccountInstruction(
+  creator.publicKey, // payer
+  tokenAccount, // ata
+  creator.publicKey, // owner
+  mint.publicKey // mint
+ ),
+ // Mint tokens to the token account
+ createMintToCheckedInstruction(
+  mint.publicKey, // mint
+  tokenAccount, // receiver (should be a token account)
+  creator.publicKey, // mint authority
+  amount, // amount. if your decimals is 8, you mint 10^8 for 1 token.
+  decimals // decimals
+ ),
+ // Optionally, revoke the mint authority
+ createSetAuthorityInstruction(
+  mint.publicKey, // mint acocunt || token account
+  creator.publicKey, // current auth
+  AuthorityType.MintTokens, // authority type
+  null // new auth (you can pass `null` to close it)
+ )
+);
+
+await sendAndConfirmTransaction(connection, tx, [creator, mint], {
+ commitment: "confirmed",
+});
+
+const wsolTokenAccount = getAssociatedTokenAddressSync(
+ NATIVE_MINT,
+ creator.publicKey,
+ false,
+ TOKEN_PROGRAM_ID
+);
+
+console.log(
+ "Creating a new token account for WSOL...",
+ wsolTokenAccount.toBase58()
+);
+
+const tx2 = new Transaction().add(
+ createAssociatedTokenAccountInstruction(
+  creator.publicKey,
+  wsolTokenAccount,
+  creator.publicKey,
+  NATIVE_MINT
+ ),
+ SystemProgram.transfer({
+  fromPubkey: creator.publicKey,
+  toPubkey: wsolTokenAccount,
+  lamports: 2 * LAMPORTS_PER_SOL,
+ }),
+ createSyncNativeInstruction(wsolTokenAccount, TOKEN_PROGRAM_ID)
+);
+await sendAndConfirmTransaction(connection, tx2, [creator], {
+ commitment: "confirmed",
+});
+console.log("WSOL token account created successfully!");
+
+// Initialize a new liquidity pool
+const pool = await Heaven.new({
+ base: mint.publicKey, // The token we created;
+ quote: NATIVE_MINT, // WSOL;
+ connection: connection,
+ payer: creator.publicKey,
+ network: "devnet",
+ // Optional: If you want to use a custom program ID
+ // programId: new PublicKey('...'), // Insert the program ID
+});
+
+// This will create a new liquidity pool with the following parameters:
+// - 1 SOL
+// - 1000,000 of the token we created
+// - 1% sell tax -> Swapping from base to quote token
+// - 0.25% buy tax -> Swapping from quote to base token
+// - Lock liquidity for 60 seconds
+// - Open pool 5 seconds after creation
+// - And only allowing pool creator to add additional liquidity
+const ix = await pool.createIx({
+ // amount of base token to deposit
+ baseAmount: new BN(1000_000 * 10 ** pool.baseTokenMintDecimals),
+ // amount of quote token to deposit
+ quoteAmount: new BN(1 * 10 ** pool.quoteTokenMintDecimals),
+ // sellTax BPS = 100 / 10000 * 100 = 1%;
+ sellTax: new BN(100),
+ // buyTax BPS = 25 / 10000 * 100 = 0.25%;
+ buyTax: new BN(25),
+ // locking liquidity
+ lp: "lock", // or 'burn' to burn LP tokens
+ // Lock liquidity for 60 seconds
+ lockLiquidityUntil: new Date(new Date().getTime() + 60 * 1000),
+ // Open pool 5 seconds after creation
+ openPoolAt: new Date(new Date().getTime() + 5 * 1000),
+ // [OPTIONAL]: The contract will emit this event when the pool is created
+ event: "",
+ // [OPTIONAL]: Only allow pool creatot to add additional liquidity.
+ // Default is `false`.
+ // Important: This cannot be changed after pool creation.
+ // Setting this to `true` will only allow the pool creator to collect swap fees without pulling
+ // all the liquidity from the pool.
+ disableNonCreatorAddLiquidity: true,
+});
+
+const id = pool.subscribeCustomEvent((event, poolId, instruction) => {
+ console.log("Custom event:", event, poolId, instruction);
+});
+
+// Don't forget to unsubscribe from the custom event when you no longer need it
+await pool.unsubscribe(id);
+
+const createPoolTx = await sendAndConfirmTransaction(
+ connection,
+ new Transaction().add(
+  // Creating a new pool uses more than the default 200K compute units
+  // so we need to increase the compute unit limit
+  // to avoid the transaction failing with an error
+  ComputeBudgetProgram.setComputeUnitLimit({
+   units: 300000,
+  }),
+  ix
+ ),
+ [creator],
+ {
+  commitment: "confirmed",
+ }
+);
+console.log("Liquidity pool created successfully!", createPoolTx);
+console.log("Pool address:", pool.liquidityPoolState.toBase58());
+
+console.log("Waiting for the pool to open...");
+await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
+
+console.log("Swapping 0.01 SOL for as much tokens as possible...");
+const swapInAmount = new BN(0.01 * 10 ** pool.quoteTokenMintDecimals);
+const swapInQuote = await pool.quoteSwapIn({
+ amount: swapInAmount,
+ inputSide: "quote",
+ slippage: new BN(100), // 1%
+});
+
+console.log("Quote ", swapInQuote);
+
+const swapInIx = await pool.swapInIx({
+ quoteResult: swapInQuote,
+ amount: swapInAmount,
+});
+
+const swapInTx = await sendAndConfirmTransaction(
+ connection,
+ new Transaction().add(swapInIx),
+ [creator],
+ {
+  commitment: "confirmed",
+ }
+);
+
+console.log("Swap in transaction confirmed!", swapInTx);
+```
+
+# Documentation
+For more information, please refer to the [official documentation](https://docs.heaven.xyz).
