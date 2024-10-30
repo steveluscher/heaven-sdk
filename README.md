@@ -99,7 +99,7 @@ module.exports = {
 
 ## Install Dependencies
 ```bash
-npm i @solana/web3.js @solana/spl-token bn.js heaven-sdk
+npm i @solana/web3.js@1 @solana/spl-token bn.js heaven-sdk
 ```
 
 ## Setup
